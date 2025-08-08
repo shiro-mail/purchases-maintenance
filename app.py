@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for
 import sqlite3
 import json
 import os
+import uuid
 from datetime import datetime
 
 app = Flask(__name__)
@@ -19,6 +20,7 @@ def init_db():
             person_in_charge TEXT NOT NULL,
             shipping_cost INTEGER NOT NULL,
             total_amount INTEGER NOT NULL,
+            import_session_id TEXT NOT NULL DEFAULT 'legacy',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -86,18 +88,21 @@ def save_data():
         conn = sqlite3.connect('purchases.db')
         cursor = conn.cursor()
         
+        session_id = str(uuid.uuid4())
+        
         for record in data:
             cursor.execute('''
                 INSERT INTO basic_info 
-                (shipment_date, order_number, delivery_number, person_in_charge, shipping_cost, total_amount)
-                VALUES (?, ?, ?, ?, ?, ?)
+                (shipment_date, order_number, delivery_number, person_in_charge, shipping_cost, total_amount, import_session_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
             ''', (
                 record['出荷日'],
                 record['受注番号'],
                 record['納入先番号'],
                 record['担当者'],
                 int(record['運賃']),
-                int(record['税抜合計'])
+                int(record['税抜合計']),
+                session_id
             ))
             
             basic_id = cursor.lastrowid
@@ -119,13 +124,56 @@ def save_data():
         
         conn.commit()
         conn.close()
-        return jsonify({'success': True})
+        return jsonify({'success': True, 'session_id': session_id})
     
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 @app.route('/api/basic_info')
 def api_basic_info():
+    conn = sqlite3.connect('purchases.db')
+    cursor = conn.cursor()
+    
+    cursor.execute('''
+        SELECT import_session_id 
+        FROM basic_info 
+        ORDER BY created_at DESC 
+        LIMIT 1
+    ''')
+    
+    latest_session = cursor.fetchone()
+    if not latest_session:
+        conn.close()
+        return jsonify([])
+    
+    latest_session_id = latest_session[0]
+    
+    cursor.execute('''
+        SELECT id, shipment_date, order_number, delivery_number, person_in_charge, 
+               shipping_cost, total_amount, created_at
+        FROM basic_info 
+        WHERE import_session_id = ?
+        ORDER BY shipment_date DESC
+    ''', (latest_session_id,))
+    
+    records = []
+    for row in cursor.fetchall():
+        records.append({
+            'id': row[0],
+            'shipment_date': row[1],
+            'order_number': row[2],
+            'delivery_number': row[3],
+            'person_in_charge': row[4],
+            'shipping_cost': row[5],
+            'total_amount': row[6],
+            'created_at': row[7]
+        })
+    
+    conn.close()
+    return jsonify(records)
+
+@app.route('/api/purchase_list')
+def api_purchase_list():
     conn = sqlite3.connect('purchases.db')
     cursor = conn.cursor()
     
