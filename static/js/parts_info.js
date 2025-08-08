@@ -129,7 +129,7 @@ onDOMReady(() => {
                         </div>
                         <div class="form-group">
                             <label for="sales_amount">売上金額</label>
-                            <input type="number" id="sales_amount" name="sales_amount" value="${part.sales_amount}" required>
+                            <input type="number" id="sales_amount" name="sales_amount" value="${part.sales_amount}" readonly>
                         </div>
                     </form>
                 </div>
@@ -142,6 +142,20 @@ onDOMReady(() => {
         
         document.body.appendChild(modal);
         window.currentModal = modal;
+        
+        const quantityInput = document.getElementById('quantity');
+        const unitPriceInput = document.getElementById('unit_price');
+        const salesAmountInput = document.getElementById('sales_amount');
+        
+        function calculateSalesAmount() {
+            const quantity = parseFloat(quantityInput.value) || 0;
+            const unitPrice = parseFloat(unitPriceInput.value) || 0;
+            const salesAmount = quantity * unitPrice;
+            salesAmountInput.value = salesAmount;
+        }
+        
+        quantityInput.addEventListener('input', calculateSalesAmount);
+        unitPriceInput.addEventListener('input', calculateSalesAmount);
     }
     
     window.closeModal = function() {
