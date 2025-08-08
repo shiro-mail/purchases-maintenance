@@ -70,13 +70,129 @@ onDOMReady(() => {
         tableContainer.innerHTML = html;
     }
     
-    window.editRecord = function(id) {
-        alert('編集機能は今後実装予定です');
+    window.editRecord = async function(id) {
+        try {
+            const data = await apiCall('/api/basic_info');
+            const record = data.find(r => r.id === id);
+            
+            if (!record) {
+                showMessage('レコードが見つかりません', 'error');
+                return;
+            }
+            
+            showEditModal(record);
+        } catch (error) {
+            showMessage('レコードの取得に失敗しました', 'error');
+            console.error('Edit error:', error);
+        }
     };
     
-    window.deleteRecord = function(id) {
-        if (confirm('このレコードを削除しますか？')) {
-            alert('削除機能は今後実装予定です');
+    window.deleteRecord = async function(id) {
+        if (!confirm('このレコードを削除しますか？関連する部品情報も全て削除されます。')) {
+            return;
+        }
+        
+        try {
+            const result = await apiCall(`/api/basic_info/${id}`, {
+                method: 'DELETE'
+            });
+            
+            if (result.success) {
+                showMessage('レコードを削除しました', 'success');
+                loadBasicInfo(); // Reload the table
+            } else {
+                showMessage(result.error || '削除に失敗しました', 'error');
+            }
+        } catch (error) {
+            showMessage('削除中にエラーが発生しました', 'error');
+            console.error('Delete error:', error);
+        }
+    };
+    
+    function showEditModal(record) {
+        const modal = document.createElement('div');
+        modal.className = 'modal show';
+        modal.innerHTML = `
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>基本情報編集</h3>
+                    <button class="modal-close" onclick="closeModal()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <form id="editForm">
+                        <div class="form-group">
+                            <label for="shipment_date">出荷日</label>
+                            <input type="text" id="shipment_date" name="shipment_date" value="${record.shipment_date}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="order_number">受注番号</label>
+                            <input type="text" id="order_number" name="order_number" value="${record.order_number}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="delivery_number">納入先番号</label>
+                            <input type="text" id="delivery_number" name="delivery_number" value="${record.delivery_number}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="person_in_charge">担当者</label>
+                            <input type="text" id="person_in_charge" name="person_in_charge" value="${record.person_in_charge}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="shipping_cost">運賃</label>
+                            <input type="number" id="shipping_cost" name="shipping_cost" value="${record.shipping_cost}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="total_amount">税抜合計</label>
+                            <input type="number" id="total_amount" name="total_amount" value="${record.total_amount}" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeModal()">キャンセル</button>
+                    <button class="btn btn-primary" onclick="saveRecord(${record.id})">保存</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        window.currentModal = modal;
+    }
+    
+    window.closeModal = function() {
+        if (window.currentModal) {
+            document.body.removeChild(window.currentModal);
+            window.currentModal = null;
+        }
+    };
+    
+    window.saveRecord = async function(id) {
+        const form = document.getElementById('editForm');
+        const formData = new FormData(form);
+        
+        const data = {
+            shipment_date: formData.get('shipment_date'),
+            order_number: formData.get('order_number'),
+            delivery_number: formData.get('delivery_number'),
+            person_in_charge: formData.get('person_in_charge'),
+            shipping_cost: formData.get('shipping_cost'),
+            total_amount: formData.get('total_amount')
+        };
+        
+        try {
+            const result = await apiCall(`/api/basic_info/${id}`, {
+                method: 'PUT',
+                body: JSON.stringify(data)
+            });
+            
+            if (result.success) {
+                showMessage('レコードを更新しました', 'success');
+                closeModal();
+                loadBasicInfo(); // Reload the table
+            } else {
+                showMessage(result.error || '更新に失敗しました', 'error');
+            }
+        } catch (error) {
+            showMessage('更新中にエラーが発生しました', 'error');
+            console.error('Save error:', error);
         }
     };
 });
