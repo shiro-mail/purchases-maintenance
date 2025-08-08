@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}仕入一覧 - 仕入・保守管理システム{% endblock %}
+
+{% block content %}
+<div class="purchase-list-section">
+    <h2>仕入一覧</h2>
+    
+    <div class="actions">
+        <button id="confirmData" class="btn btn-primary">確認</button>
+    </div>
+    
+    <div id="purchaseListTable" class="data-table">
+        <div class="empty-state">「確認」ボタンを押してデータを表示してください</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/purchase_list.js') }}"></script>
+{% endblock %}

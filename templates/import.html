@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}ファイル取込 - 仕入・保守管理システム{% endblock %}
+
+{% block content %}
+<div class="import-section">
+    <h2>JSONファイル取込</h2>
+    
+    <div class="upload-area">
+        <form id="uploadForm" enctype="multipart/form-data">
+            <div class="file-input-wrapper">
+                <input type="file" id="fileInput" name="file" accept=".json" required>
+                <label for="fileInput" class="file-input-label">
+                    <span class="file-icon">📁</span>
+                    <span class="file-text">JSONファイルを選択してください</span>
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary">ファイル読込</button>
+        </form>
+    </div>
+    
+    <div id="previewSection" class="preview-section" style="display: none;">
+        <h3>データプレビュー</h3>
+        <div id="previewData"></div>
+        <div class="preview-actions">
+            <button id="saveData" class="btn btn-success">データベースに保存</button>
+            <button id="cancelImport" class="btn btn-secondary">キャンセル</button>
+        </div>
+    </div>
+    
+    <div id="messageArea" class="message-area"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/import.js') }}"></script>
+{% endblock %}
