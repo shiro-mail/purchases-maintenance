@@ -8,7 +8,7 @@ onDOMReady(() => {
         try {
             tableContainer.innerHTML = '<div class="loading">データを読み込み中...</div>';
             
-            const data = await apiCall('/api/basic_info');
+            const data = await apiCall('/api/purchase_list');
             
             if (data.length === 0) {
                 tableContainer.innerHTML = '<div class="empty-state">データがありません</div>';
