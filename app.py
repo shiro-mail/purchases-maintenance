@@ -177,6 +177,111 @@ def api_parts_info(basic_id):
     conn.close()
     return jsonify(parts)
 
+@app.route('/api/basic_info/<int:record_id>', methods=['PUT'])
+def update_basic_info(record_id):
+    try:
+        data = request.json
+        conn = sqlite3.connect('purchases.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            UPDATE basic_info 
+            SET shipment_date = ?, order_number = ?, delivery_number = ?, 
+                person_in_charge = ?, shipping_cost = ?, total_amount = ?
+            WHERE id = ?
+        ''', (
+            data['shipment_date'],
+            data['order_number'],
+            data['delivery_number'],
+            data['person_in_charge'],
+            int(data['shipping_cost']),
+            int(data['total_amount']),
+            record_id
+        ))
+        
+        if cursor.rowcount == 0:
+            conn.close()
+            return jsonify({'error': 'レコードが見つかりません'}), 404
+        
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/basic_info/<int:record_id>', methods=['DELETE'])
+def delete_basic_info(record_id):
+    try:
+        conn = sqlite3.connect('purchases.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('DELETE FROM parts_info WHERE basic_info_id = ?', (record_id,))
+        
+        cursor.execute('DELETE FROM basic_info WHERE id = ?', (record_id,))
+        
+        if cursor.rowcount == 0:
+            conn.close()
+            return jsonify({'error': 'レコードが見つかりません'}), 404
+        
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/parts_info/<int:part_id>', methods=['PUT'])
+def update_parts_info(part_id):
+    try:
+        data = request.json
+        conn = sqlite3.connect('purchases.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('''
+            UPDATE parts_info 
+            SET part_number = ?, part_name = ?, quantity = ?, 
+                unit_price = ?, sales_amount = ?
+            WHERE id = ?
+        ''', (
+            data['part_number'],
+            data['part_name'],
+            int(data['quantity']),
+            int(data['unit_price']),
+            int(data['sales_amount']),
+            part_id
+        ))
+        
+        if cursor.rowcount == 0:
+            conn.close()
+            return jsonify({'error': '部品情報が見つかりません'}), 404
+        
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/parts_info/<int:part_id>', methods=['DELETE'])
+def delete_parts_info(part_id):
+    try:
+        conn = sqlite3.connect('purchases.db')
+        cursor = conn.cursor()
+        
+        cursor.execute('DELETE FROM parts_info WHERE id = ?', (part_id,))
+        
+        if cursor.rowcount == 0:
+            conn.close()
+            return jsonify({'error': '部品情報が見つかりません'}), 404
+        
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     init_db()
     app.run(debug=True, host='0.0.0.0', port=8000)
