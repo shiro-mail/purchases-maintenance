@@ -6,6 +6,24 @@ onDOMReady(() => {
     
     refreshBtn.addEventListener('click', loadBasicInfo);
     
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'partsUpdated') {
+            loadBasicInfo();
+        }
+    });
+    
+    let lastPartsUpdateCheck = 0;
+    setInterval(function() {
+        const partsUpdate = localStorage.getItem('partsUpdated');
+        if (partsUpdate) {
+            const updateData = JSON.parse(partsUpdate);
+            if (updateData.timestamp > lastPartsUpdateCheck) {
+                lastPartsUpdateCheck = updateData.timestamp;
+                loadBasicInfo();
+            }
+        }
+    }, 1000);
+    
     async function loadBasicInfo() {
         try {
             tableContainer.innerHTML = '<div class="loading">データを読み込み中...</div>';

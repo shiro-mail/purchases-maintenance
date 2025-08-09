@@ -96,6 +96,11 @@ onDOMReady(() => {
             if (result.success) {
                 showMessage('部品情報を削除しました', 'success');
                 loadPartsInfo(); // Reload the table
+                
+                localStorage.setItem('partsUpdated', JSON.stringify({
+                    basicInfoId: basicId,
+                    timestamp: Date.now()
+                }));
             } else {
                 showMessage(result.error || '削除に失敗しました', 'error');
             }
@@ -192,6 +197,11 @@ onDOMReady(() => {
                 showMessage('部品情報を更新しました', 'success');
                 closeModal();
                 loadPartsInfo(); // Reload the table
+                
+                localStorage.setItem('partsUpdated', JSON.stringify({
+                    basicInfoId: basicId,
+                    timestamp: Date.now()
+                }));
             } else {
                 showMessage(result.error || '更新に失敗しました', 'error');
             }
