@@ -51,8 +51,8 @@ onDOMReady(() => {
                     <td>${formatCurrency(part.unit_price)}</td>
                     <td>${formatCurrency(part.sales_amount)}</td>
                     <td>
-                        <button onclick="editPart(${part.id})" class="btn btn-secondary">編集</button>
-                        <button onclick="deletePart(${part.id})" class="btn btn-secondary">削除</button>
+                        <button onclick="editPart(${part.id})" class="btn btn-warning">編集</button>
+                        <button onclick="deletePart(${part.id})" class="btn btn-danger">削除</button>
                     </td>
                 </tr>
             `;

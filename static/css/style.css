@@ -106,6 +106,15 @@ nav a:hover {
     background-color: #138496;
 }
 
+.btn-warning {
+    background-color: #f39c12;
+    color: white;
+}
+
+.btn-warning:hover {
+    background-color: #e67e22;
+}
+
 /* Card styles */
 .menu-cards {
     display: grid;
