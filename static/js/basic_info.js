@@ -75,8 +75,8 @@ onDOMReady(() => {
                         <a href="/parts_info/${record.id}" class="btn btn-info">部品情報</a>
                     </td>
                     <td>
-                        <button onclick="editRecord(${record.id})" class="btn btn-secondary">編集</button>
-                        <button onclick="deleteRecord(${record.id})" class="btn btn-secondary">削除</button>
+                        <button onclick="editRecord(${record.id})" class="btn btn-warning">編集</button>
+                        <button onclick="deleteRecord(${record.id})" class="btn btn-danger">削除</button>
                     </td>
                 </tr>
             `;
