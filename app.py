@@ -149,15 +149,21 @@ def api_basic_info():
     latest_session_id = latest_session[0]
     
     cursor.execute('''
-        SELECT id, shipment_date, order_number, delivery_number, person_in_charge, 
-               shipping_cost, total_amount, created_at
-        FROM basic_info 
-        WHERE import_session_id = ?
-        ORDER BY shipment_date DESC
+        SELECT b.id, b.shipment_date, b.order_number, b.delivery_number, b.person_in_charge, 
+               b.shipping_cost, b.total_amount, b.created_at,
+               COALESCE(SUM(p.sales_amount), 0) as parts_total
+        FROM basic_info b
+        LEFT JOIN parts_info p ON b.id = p.basic_info_id
+        WHERE b.import_session_id = ?
+        GROUP BY b.id, b.shipment_date, b.order_number, b.delivery_number, b.person_in_charge, 
+                 b.shipping_cost, b.total_amount, b.created_at
+        ORDER BY b.shipment_date DESC
     ''', (latest_session_id,))
     
     records = []
     for row in cursor.fetchall():
+        parts_total = row[8]
+        calculated_total = row[5] + parts_total
         records.append({
             'id': row[0],
             'shipment_date': row[1],
@@ -165,7 +171,8 @@ def api_basic_info():
             'delivery_number': row[3],
             'person_in_charge': row[4],
             'shipping_cost': row[5],
-            'total_amount': row[6],
+            'parts_total': parts_total,
+            'total_amount': calculated_total,
             'created_at': row[7]
         })
     

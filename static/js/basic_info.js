@@ -34,6 +34,7 @@ onDOMReady(() => {
                         <th>納入先番号</th>
                         <th>担当者</th>
                         <th>運賃</th>
+                        <th>部品合計</th>
                         <th>税抜合計</th>
                         <th>部品情報</th>
                         <th>操作</th>
@@ -50,6 +51,7 @@ onDOMReady(() => {
                     <td>${record.delivery_number}</td>
                     <td>${record.person_in_charge}</td>
                     <td>${formatCurrency(record.shipping_cost)}</td>
+                    <td>${formatCurrency(record.parts_total)}</td>
                     <td>${formatCurrency(record.total_amount)}</td>
                     <td>
                         <a href="/parts_info/${record.id}" class="btn btn-info">部品情報</a>
@@ -141,8 +143,12 @@ onDOMReady(() => {
                             <input type="number" id="shipping_cost" name="shipping_cost" value="${record.shipping_cost}" required>
                         </div>
                         <div class="form-group">
+                            <label for="parts_total">部品合計</label>
+                            <input type="number" id="parts_total" name="parts_total" value="${record.parts_total}" readonly>
+                        </div>
+                        <div class="form-group">
                             <label for="total_amount">税抜合計</label>
-                            <input type="number" id="total_amount" name="total_amount" value="${record.total_amount}" required>
+                            <input type="number" id="total_amount" name="total_amount" value="${record.total_amount}" readonly>
                         </div>
                     </form>
                 </div>
@@ -155,6 +161,19 @@ onDOMReady(() => {
         
         document.body.appendChild(modal);
         window.currentModal = modal;
+        
+        const shippingCostInput = document.getElementById('shipping_cost');
+        const partsTotalInput = document.getElementById('parts_total');
+        const totalAmountInput = document.getElementById('total_amount');
+        
+        function calculateTotalAmount() {
+            const shippingCost = parseFloat(shippingCostInput.value) || 0;
+            const partsTotal = parseFloat(partsTotalInput.value) || 0;
+            const totalAmount = shippingCost + partsTotal;
+            totalAmountInput.value = totalAmount;
+        }
+        
+        shippingCostInput.addEventListener('input', calculateTotalAmount);
     }
     
     window.closeModal = function() {
