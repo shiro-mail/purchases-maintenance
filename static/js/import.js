@@ -1,12 +1,82 @@
 onDOMReady(() => {
     const uploadForm = document.getElementById('uploadForm');
     const fileInput = document.getElementById('fileInput');
+    const difyUploadForm = document.getElementById('difyUploadForm');
+    const difyFileInput = document.getElementById('difyFileInput');
     const previewSection = document.getElementById('previewSection');
     const previewData = document.getElementById('previewData');
     const saveDataBtn = document.getElementById('saveData');
     const cancelImportBtn = document.getElementById('cancelImport');
+    const fileSourceRadio = document.getElementById('fileSource');
+    const difySourceRadio = document.getElementById('difySource');
+    const fileUploadSection = document.getElementById('fileUploadSection');
+    const difyFetchSection = document.getElementById('difyFetchSection');
     
     let currentData = null;
+    
+    fileSourceRadio.addEventListener('change', toggleDataSource);
+    difySourceRadio.addEventListener('change', toggleDataSource);
+    
+    function toggleDataSource() {
+        if (fileSourceRadio.checked) {
+            fileUploadSection.style.display = 'block';
+            difyFetchSection.style.display = 'none';
+        } else {
+            fileUploadSection.style.display = 'none';
+            difyFetchSection.style.display = 'block';
+        }
+    }
+    
+    difyFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const fileText = document.querySelector('.dify-file-text');
+            fileText.textContent = file.name;
+        }
+    });
+    
+    difyUploadForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const formData = new FormData();
+        const file = difyFileInput.files[0];
+        
+        if (!file) {
+            showMessage('PNGファイルを選択してください', 'error');
+            return;
+        }
+        
+        formData.append('file', file);
+        
+        try {
+            const submitBtn = difyUploadForm.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Difyで分析中...';
+            showMessage('Difyでファイルを分析中...', 'info');
+            
+            const response = await fetch('/api/dify/fetch-data', {
+                method: 'POST',
+                body: formData
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                currentData = result.data;
+                displayPreview(result.data);
+                showMessage('Difyからデータを取得しました', 'success');
+            } else {
+                showMessage(result.error || 'Difyからのデータ取得に失敗しました', 'error');
+            }
+        } catch (error) {
+            showMessage('Difyからのデータ取得中にエラーが発生しました', 'error');
+            console.error('Dify fetch error:', error);
+        } finally {
+            const submitBtn = difyUploadForm.querySelector('button[type="submit"]');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Difyでデータ分析';
+        }
+    });
     
     fileInput.addEventListener('change', (e) => {
         const file = e.target.files[0];
@@ -133,7 +203,11 @@ onDOMReady(() => {
         currentData = null;
         previewSection.style.display = 'none';
         uploadForm.reset();
+        difyUploadForm.reset();
         document.querySelector('.file-text').textContent = 'JSONファイルを選択してください';
+        document.querySelector('.dify-file-text').textContent = 'PNGファイルを選択してください';
         document.getElementById('messageArea').innerHTML = '';
+        fileSourceRadio.checked = true;
+        toggleDataSource();
     });
 });

@@ -3,7 +3,10 @@ import sqlite3
 import json
 import os
 import uuid
+import requests
+import time
 from datetime import datetime
+from config import DifyConfig
 
 app = Flask(__name__)
 
@@ -68,6 +71,115 @@ def upload_file():
             return jsonify({'error': f'JSONファイルの読み込みに失敗しました: {str(e)}'}), 400
     
     return jsonify({'error': '有効なJSONファイルを選択してください'}), 400
+
+@app.route('/api/dify/fetch-data', methods=['POST'])
+def fetch_data_from_dify():
+    """Fetch data from Dify workflow using PNG file upload"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'ファイルが選択されていません'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'ファイルが選択されていません'}), 400
+        
+        if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+            return jsonify({'error': 'PNG、JPG、またはJPEGファイルを選択してください'}), 400
+        
+        file.seek(0)  # Reset file pointer
+        
+        upload_files = {
+            'file': (file.filename, file, file.content_type)
+        }
+        upload_data = {
+            'user': 'purchases-maintenance-app'
+        }
+        
+        print(f"DEBUG: Uploading file to Dify first")
+        
+        upload_response = requests.post(
+            f"{DifyConfig.DIFY_API_BASE_URL}/v1/files/upload",
+            headers={'Authorization': f'Bearer {DifyConfig.DIFY_API_KEY}'},
+            files=upload_files,
+            data=upload_data,
+            timeout=30
+        )
+        
+        print(f"DEBUG: Upload response status: {upload_response.status_code}")
+        print(f"DEBUG: Upload response text: {upload_response.text}")
+        
+        if upload_response.status_code != 201:
+            return jsonify({
+                'error': f'Difyファイルアップロードエラー: {upload_response.status_code} - {upload_response.text}'
+            }), 500
+        
+        upload_result = upload_response.json()
+        file_id = upload_result.get('id')
+        
+        if not file_id:
+            return jsonify({'error': 'ファイルアップロードからIDを取得できませんでした'}), 500
+        
+        workflow_payload = {
+            "inputs": {
+                "input_file": {
+                    "type": "file",
+                    "transfer_method": "local_file", 
+                    "upload_file_id": file_id
+                }
+            },
+            "response_mode": "blocking",
+            "user": "purchases-maintenance-app"
+        }
+        
+        print(f"DEBUG: Executing workflow with file ID: {file_id}")
+        
+        workflow_response = requests.post(
+            DifyConfig.get_workflow_run_url(),
+            headers=DifyConfig.get_headers(),
+            json=workflow_payload,
+            timeout=60
+        )
+        
+        print(f"DEBUG: Workflow response status: {workflow_response.status_code}")
+        print(f"DEBUG: Workflow response text: {workflow_response.text}")
+        
+        if workflow_response.status_code != 200:
+            return jsonify({
+                'error': f'Difyワークフロー実行エラー: {workflow_response.status_code} - {workflow_response.text}'
+            }), 500
+        
+        workflow_result = workflow_response.json()
+        print(f"DEBUG: Workflow result: {workflow_result}")
+        
+        if 'data' in workflow_result and 'outputs' in workflow_result['data']:
+            outputs = workflow_result['data']['outputs']
+            
+            if 'text' in outputs:
+                text_data = outputs['text']
+            else:
+                return jsonify({'error': 'Difyワークフローから"text"キーが見つかりませんでした'}), 500
+            
+            try:
+                if isinstance(text_data, str):
+                    data = json.loads(text_data)
+                else:
+                    data = text_data
+            except json.JSONDecodeError:
+                return jsonify({'error': 'Difyから返されたテキストデータの形式が正しくありません'}), 500
+            
+            if not isinstance(data, list):
+                return jsonify({'error': 'データは配列形式である必要があります'}), 400
+            
+            return jsonify({'success': True, 'data': data})
+        else:
+            return jsonify({'error': 'Difyワークフローの実行に失敗しました'}), 500
+            
+    except requests.exceptions.Timeout:
+        return jsonify({'error': 'Dify APIのタイムアウトが発生しました（60秒）'}), 500
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': f'Dify API接続エラー: {str(e)}'}), 500
+    except Exception as e:
+        return jsonify({'error': f'データ取得中にエラーが発生しました: {str(e)}'}), 500
 
 @app.route('/basic_info')
 def basic_info():
@@ -339,4 +451,4 @@ def delete_parts_info(part_id):
 
 if __name__ == '__main__':
     init_db()
-    app.run(debug=True, host='0.0.0.0', port=8000)
+    app.run(debug=True, host='0.0.0.0', port=8001)
