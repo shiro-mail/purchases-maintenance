@@ -7,16 +7,41 @@
     <h2>JSONファイル取込</h2>
     
     <div class="upload-area">
-        <form id="uploadForm" enctype="multipart/form-data">
-            <div class="file-input-wrapper">
-                <input type="file" id="fileInput" name="file" accept=".json" required>
-                <label for="fileInput" class="file-input-label">
-                    <span class="file-icon">📁</span>
-                    <span class="file-text">JSONファイルを選択してください</span>
-                </label>
+        <div class="data-source-options">
+            <div class="option-group">
+                <input type="radio" id="fileSource" name="dataSource" value="file" checked>
+                <label for="fileSource" class="source-label">ファイルから取得</label>
+                <div class="file-upload-section" id="fileUploadSection">
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="file-input-wrapper">
+                            <input type="file" id="fileInput" name="file" accept=".json" required>
+                            <label for="fileInput" class="file-input-label">
+                                <span class="file-icon">📁</span>
+                                <span class="file-text">JSONファイルを選択してください</span>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">ファイル読込</button>
+                    </form>
+                </div>
             </div>
-            <button type="submit" class="btn btn-primary">ファイル読込</button>
-        </form>
+            
+            <div class="option-group">
+                <input type="radio" id="difySource" name="dataSource" value="dify">
+                <label for="difySource" class="source-label">Difyから取得</label>
+                <div class="dify-fetch-section" id="difyFetchSection" style="display: none;">
+                    <form id="difyUploadForm" enctype="multipart/form-data">
+                        <div class="file-input-wrapper">
+                            <input type="file" id="difyFileInput" name="file" accept=".png,.jpg,.jpeg" required>
+                            <label for="difyFileInput" class="file-input-label">
+                                <span class="file-icon">🖼️</span>
+                                <span class="dify-file-text">PNGファイルを選択してください</span>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Difyでデータ分析</button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
     
     <div id="previewSection" class="preview-section" style="display: none;">
