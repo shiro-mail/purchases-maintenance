@@ -119,10 +119,13 @@ def fetch_data_from_dify():
         if not file_id:
             return jsonify({'error': 'ファイルアップロードからIDを取得できませんでした'}), 500
         
+        file_extension = file.filename.lower().split('.')[-1] if file.filename else ''
+        file_type = "image" if file_extension in ['png', 'jpg', 'jpeg'] else "file"
+        
         workflow_payload = {
             "inputs": {
                 "input_file": {
-                    "type": "file",
+                    "type": file_type,
                     "transfer_method": "local_file", 
                     "upload_file_id": file_id
                 }
@@ -131,7 +134,7 @@ def fetch_data_from_dify():
             "user": "purchases-maintenance-app"
         }
         
-        print(f"DEBUG: Executing workflow with file ID: {file_id}")
+        print(f"DEBUG: Executing workflow with file ID: {file_id}, file type: {file_type}")
         
         workflow_response = requests.post(
             DifyConfig.get_workflow_run_url(),
