@@ -22,7 +22,12 @@ onDOMReady(() => {
     }
     
     function displayPartsInfo(data) {
+        const totalSalesAmount = data.reduce((sum, part) => sum + part.sales_amount, 0);
+        
         let html = `
+            <div class="parts-summary">
+                <p><strong>売上金額合計:</strong> ${formatCurrency(totalSalesAmount)}</p>
+            </div>
             <table>
                 <thead>
                     <tr>
