@@ -5,10 +5,6 @@ class DifyConfig:
     """Configuration for Dify API integration"""
     
     DIFY_API_BASE_URL = "https://api.dify.ai"
-
-    # 「YES部品納品書(PNG)」アプリ
-    # DIFY_API_KEY = "app-33w63pGaSd67oxikzoZdnBEe"
-    # DIFY_WORKFLOW_ID = "cdd3316e-5dab-4e66-904b-35dc988ef5a7"
     
     # 「YES部品納品書(PNG)_複数」アプリ
     DIFY_API_KEY = "app-rn8gqMRYlEYkDH0rAntmbDJV"
