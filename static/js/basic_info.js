@@ -167,8 +167,9 @@ onDOMReady(() => {
                         <th>運賃</th>
                         <th>部品合計</th>
                         <th>税抜合計</th>
-                        <th>部品情報</th>
+                        <th>部品詳細</th>
                         <th>操作</th>
+                        <th>選択</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -185,11 +186,14 @@ onDOMReady(() => {
                     <td>${formatCurrency(record.parts_total)}</td>
                     <td>${formatCurrency(record.total_amount)}</td>
                     <td>
-                        <a href="/parts_info/${record.id}" class="btn btn-info">部品情報</a>
+                        <a href="/parts_info/${record.id}" class="btn btn-info">部品詳細</a>
                     </td>
                     <td>
                         <button onclick="editRecord(${record.id})" class="btn btn-warning">編集</button>
                         <button onclick="deleteRecord(${record.id})" class="btn btn-danger">削除</button>
+                    </td>
+                    <td>
+                        <input type="checkbox" class="row-check-db" data-id="${record.id}">
                     </td>
                 </tr>
             `;
