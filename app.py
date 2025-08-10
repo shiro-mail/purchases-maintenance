@@ -184,6 +184,144 @@ def fetch_data_from_dify():
     except Exception as e:
         return jsonify({'error': f'データ取得中にエラーが発生しました: {str(e)}'}), 500
 
+@app.route('/api/dify/fetch-data-multiple', methods=['POST'])
+def fetch_data_from_dify_multiple():
+    """Fetch data from Dify workflow using multiple PNG file uploads"""
+    try:
+        if 'files' not in request.files:
+            return jsonify({'error': 'ファイルが選択されていません'}), 400
+        
+        files = request.files.getlist('files')
+        if not files or len(files) == 0:
+            return jsonify({'error': 'ファイルが選択されていません'}), 400
+        
+        all_data = []
+        processed_count = 0
+        errors = []
+        
+        for i, file in enumerate(files):
+            if file.filename == '':
+                continue
+                
+            if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+                errors.append(f'{file.filename}: PNG、JPG、またはJPEGファイルではありません')
+                continue
+            
+            try:
+                file.seek(0)
+                
+                upload_files = {
+                    'file': (file.filename, file, file.content_type)
+                }
+                upload_data = {
+                    'user': 'purchases-maintenance-app'
+                }
+                
+                print(f"DEBUG: Uploading file {i+1}/{len(files)}: {file.filename}")
+                
+                upload_response = requests.post(
+                    f"{DifyConfig.DIFY_API_BASE_URL}/v1/files/upload",
+                    headers={'Authorization': f'Bearer {DifyConfig.DIFY_API_KEY}'},
+                    files=upload_files,
+                    data=upload_data,
+                    timeout=30
+                )
+                
+                print(f"DEBUG: Upload response status for {file.filename}: {upload_response.status_code}")
+                
+                if upload_response.status_code != 201:
+                    errors.append(f'{file.filename}: アップロードエラー ({upload_response.status_code})')
+                    continue
+                
+                upload_result = upload_response.json()
+                file_id = upload_result.get('id')
+                
+                if not file_id:
+                    errors.append(f'{file.filename}: ファイルIDの取得に失敗')
+                    continue
+                
+                file_extension = file.filename.lower().split('.')[-1] if file.filename else ''
+                file_type = "image" if file_extension in ['png', 'jpg', 'jpeg'] else "file"
+                
+                workflow_payload = {
+                    "inputs": {
+                        "input_file": {
+                            "type": file_type,
+                            "transfer_method": "local_file", 
+                            "upload_file_id": file_id
+                        }
+                    },
+                    "response_mode": "blocking",
+                    "user": "purchases-maintenance-app"
+                }
+                
+                print(f"DEBUG: Executing workflow for {file.filename} with file ID: {file_id}, file type: {file_type}")
+                
+                workflow_response = requests.post(
+                    DifyConfig.get_workflow_run_url(),
+                    headers=DifyConfig.get_headers(),
+                    json=workflow_payload,
+                    timeout=60
+                )
+                
+                print(f"DEBUG: Workflow response status for {file.filename}: {workflow_response.status_code}")
+                
+                if workflow_response.status_code != 200:
+                    errors.append(f'{file.filename}: ワークフロー実行エラー ({workflow_response.status_code})')
+                    continue
+                
+                workflow_result = workflow_response.json()
+                
+                if 'data' in workflow_result and 'outputs' in workflow_result['data']:
+                    outputs = workflow_result['data']['outputs']
+                    
+                    if 'text' in outputs:
+                        text_data = outputs['text']
+                        
+                        try:
+                            if isinstance(text_data, str):
+                                data = json.loads(text_data)
+                            else:
+                                data = text_data
+                            
+                            if isinstance(data, list):
+                                all_data.extend(data)
+                                processed_count += 1
+                                print(f"DEBUG: Successfully processed {file.filename}, added {len(data)} records")
+                            else:
+                                errors.append(f'{file.filename}: データ形式エラー（配列ではありません）')
+                        except json.JSONDecodeError:
+                            errors.append(f'{file.filename}: JSON解析エラー')
+                    else:
+                        errors.append(f'{file.filename}: テキストデータが見つかりません')
+                else:
+                    errors.append(f'{file.filename}: ワークフロー結果の取得に失敗')
+                    
+            except Exception as e:
+                errors.append(f'{file.filename}: {str(e)}')
+        
+        if processed_count == 0:
+            return jsonify({'error': f'すべてのファイルの処理に失敗しました。エラー: {"; ".join(errors)}'}), 500
+        
+        result = {
+            'success': True, 
+            'data': all_data,
+            'processed_count': processed_count,
+            'total_count': len(files),
+            'errors': errors
+        }
+        
+        print(f"DEBUG: Multiple file processing complete. Processed: {processed_count}/{len(files)}, Total records: {len(all_data)}")
+        
+        return jsonify(result)
+        
+    except requests.exceptions.Timeout:
+        return jsonify({'error': 'Dify APIのタイムアウトが発生しました（60秒）'}), 500
+    except requests.exceptions.RequestException as e:
+        return jsonify({'error': f'Dify API接続エラー: {str(e)}'}), 500
+    except Exception as e:
+        return jsonify({'error': f'複数ファイル処理中にエラーが発生しました: {str(e)}'}), 500
+
 @app.route('/basic_info')
 def basic_info():
     return render_template('basic_info.html')
