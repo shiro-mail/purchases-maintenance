@@ -671,6 +671,20 @@ def delete_parts_info(part_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/delete_all_data', methods=['POST'])
+def delete_all_data():
+    try:
+        conn = sqlite3.connect('purchases.db')
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM parts_info')
+        cursor.execute('DELETE FROM basic_info')
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     init_db()
     app.run(debug=True, host='0.0.0.0', port=8001)
