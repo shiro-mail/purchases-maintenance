@@ -1,3 +1,11 @@
+window.openPartsDetail = function(id) {
+    if (id === undefined || id === null) return;
+    try {
+        window.location.href = `/parts_info/${id}`;
+    } catch (e) {
+        window.location.assign(`/parts_info/${id}`);
+    }
+};
 onDOMReady(() => {
     const refreshBtn = document.getElementById('refreshData');
     const saveBtn = document.getElementById('saveSelected');
@@ -229,7 +237,7 @@ onDOMReady(() => {
                     <td>${formatCurrency(record.parts_total)}</td>
                     <td>${formatCurrency(record.total_amount)}</td>
                     <td>
-                        <a href="/parts_info/${record.id}" class="btn btn-info">部品詳細</a>
+                        <a href="/parts_info/${record.id}" class="btn btn-info" onclick="openPartsDetail(${record.id}); return false;" role="button">部品詳細</a>
                     </td>
                     <td>
                         <button onclick="editRecord(${record.id})" class="btn btn-warning">編集</button>
