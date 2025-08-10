@@ -169,6 +169,22 @@ onDOMReady(() => {
             }
         });
     }
+    tableContainer.addEventListener('click', function(e) {
+        const btn = e.target.closest('[data-action="delete"]');
+        if (!btn || !tableContainer.contains(btn)) return;
+        e.preventDefault();
+        e.stopPropagation();
+        window.confirm('削除していいですか？');
+        return;
+    }, true);
+    document.addEventListener('click', function(e) {
+        const btn = e.target.closest('[data-action="delete"]');
+        if (!btn) return;
+        e.preventDefault();
+        window.confirm('削除していいですか？');
+        return;
+    }, true);
+
 
     window.addEventListener('storage', function(e) {
         if (e.key === 'partsUpdated') {
@@ -241,7 +257,7 @@ onDOMReady(() => {
                     </td>
                     <td>
                         <button class="btn btn-warning" onclick="editRecord(${record.id})">編集</button>
-                        <button class="btn btn-danger" onclick="confirm('削除していいですか？'); return false;">削除</button>
+                        <button type="button" class="btn btn-danger" data-action="delete" data-id="${record.id}">削除</button>
                     </td>
                     <td>
                         <input type="checkbox" class="row-check-db" data-id="${record.id}">

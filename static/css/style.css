@@ -262,6 +262,7 @@ nav a:hover {
 .data-table .btn {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
+    pointer-events: auto;
 }
 
 /* Preview section */
