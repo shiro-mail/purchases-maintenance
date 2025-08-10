@@ -198,6 +198,16 @@ onDOMReady(() => {
         }, 1000);
         try { console.log('[delete-click] document capture handler reached for id=', btn.getAttribute('data-id')); } catch (_) {}
         try { window.confirm('削除していいですか？'); } catch (_) {}
+    tableContainer.addEventListener('click', function(e) {
+        const btn = e.target.closest('[data-action="test"]');
+        if (!btn || !tableContainer.contains(btn)) return;
+        e.preventDefault();
+        e.stopPropagation();
+        try { window.alert('テストボタンの動作確認'); } catch (_) {}
+        try { showMessage('テストボタンがクリックされました', 'info'); } catch (_) {}
+        return;
+    }, true);
+
         return;
     }, true);
 
@@ -274,6 +284,7 @@ onDOMReady(() => {
                     <td>
                         <button class="btn btn-warning" onclick="editRecord(${record.id})">編集</button>
                         <button type="button" class="btn btn-danger" data-action="delete" data-id="${record.id}">削除</button>
+                        <button type="button" class="btn btn-secondary" data-action="test" data-id="${record.id}">テスト</button>
                     </td>
                     <td>
                         <input type="checkbox" class="row-check-db" data-id="${record.id}">
