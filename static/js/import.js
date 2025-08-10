@@ -67,7 +67,7 @@ onDOMReady(() => {
             
             const result = await response.json();
             
-            if (result.success) {
+            if (response.ok && result.success) {
                 currentData = result.data;
                 displayPreview(result.data);
                 
@@ -77,12 +77,13 @@ onDOMReady(() => {
                 }
                 showMessage(message, result.errors.length > 0 ? 'warning' : 'success');
             } else {
-                showMessage(result.error || 'Difyからのデータ取得に失敗しました', 'error');
+                const errorMessage = result.error || result.errors?.join('; ') || 'Difyからのデータ取得に失敗しました';
+                showMessage(errorMessage, 'error');
             }
         } catch (error) {
             showMessage('Difyからのデータ取得中にエラーが発生しました', 'error');
             console.error('Dify fetch error:', error);
-        } finally {
+        }finally {
             const submitBtn = difyUploadForm.querySelector('button[type="submit"]');
             submitBtn.disabled = false;
             submitBtn.textContent = 'Difyでデータ分析';
