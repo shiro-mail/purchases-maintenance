@@ -5,9 +5,15 @@ class DifyConfig:
     """Configuration for Dify API integration"""
     
     DIFY_API_BASE_URL = "https://api.dify.ai"
-    DIFY_API_KEY = "app-33w63pGaSd67oxikzoZdnBEe"
-    DIFY_WORKFLOW_ID = "cdd3316e-5dab-4e66-904b-35dc988ef5a7"
+
+    # 「YES部品納品書(PNG)」アプリ
+    # DIFY_API_KEY = "app-33w63pGaSd67oxikzoZdnBEe"
+    # DIFY_WORKFLOW_ID = "cdd3316e-5dab-4e66-904b-35dc988ef5a7"
     
+    # 「YES部品納品書(PNG)_複数」アプリ
+    DIFY_API_KEY = "app-rn8gqMRYlEYkDH0rAntmbDJV"
+    DIFY_WORKFLOW_ID = "ed1cebe9-c907-4769-b1ac-e0e23aa6cff7"
+
     WORKFLOW_RUN_ENDPOINT = "/v1/workflows/run"
     WORKFLOW_DETAIL_ENDPOINT = "/v1/workflows/run/{workflow_run_id}"
     
