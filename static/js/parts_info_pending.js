@@ -127,6 +127,9 @@ onDOMReady(() => {
             if (action === 'edit') {
                 const modal = document.createElement('div');
                 modal.className = 'modal show';
+                const currentQty = parseNumber(qt[i]);
+                const currentPrice = parseNumber(up[i]);
+                const currentAmt = currentQty * currentPrice;
                 modal.innerHTML = `
                     <div class="modal-content">
                         <div class="modal-header">
@@ -137,8 +140,9 @@ onDOMReady(() => {
                             <form id="editPendingPart">
                                 <div class="form-group"><label>部品番号</label><input name="no" value="${pn[i] || ''}"></div>
                                 <div class="form-group"><label>部品名</label><input name="name" value="${pm[i] || ''}"></div>
-                                <div class="form-group"><label>数量</label><input type="number" name="qty" value="${parseNumber(qt[i])}"></div>
-                                <div class="form-group"><label>売上単価</label><input type="number" name="price" value="${parseNumber(up[i])}"></div>
+                                <div class="form-group"><label>数量</label><input type="number" name="qty" value="${currentQty}" step="1" min="0"></div>
+                                <div class="form-group"><label>売上単価</label><input type="number" name="price" value="${currentPrice}" step="1" min="0"></div>
+                                <div class="form-group"><label>売上金額</label><input type="number" name="amt" value="${currentAmt}" readonly></div>
                             </form>
                         </div>
                         <div class="modal-footer">
@@ -152,8 +156,21 @@ onDOMReady(() => {
                 modal.addEventListener('click', (ev) => {
                     if (ev.target.closest('[data-close]')) close();
                 });
+
+                const form = modal.querySelector('#editPendingPart');
+                const qtyInput = form.querySelector('input[name="qty"]');
+                const priceInput = form.querySelector('input[name="price"]');
+                const amtInput = form.querySelector('input[name="amt"]');
+                const recalc = () => {
+                    const q = parseNumber(qtyInput.value);
+                    const p = parseNumber(priceInput.value);
+                    amtInput.value = (q * p);
+                };
+                qtyInput.addEventListener('input', recalc);
+                priceInput.addEventListener('input', recalc);
+
                 modal.querySelector('[data-save]').addEventListener('click', () => {
-                    const fd = new FormData(modal.querySelector('#editPendingPart'));
+                    const fd = new FormData(form);
                     const no = fd.get('no') || '';
                     const name = fd.get('name') || '';
                     const qty = parseNumber(fd.get('qty'));
