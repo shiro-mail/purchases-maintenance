@@ -46,9 +46,9 @@ onDOMReady(() => {
     
     function displayPurchaseList(data) {
         data.sort((a, b) => {
-            const dateA = new Date(a.shipment_date.replace(/(\d{2})\/(\d{2})\/(\d{2})/, '20$3-$2-$1'));
-            const dateB = new Date(b.shipment_date.replace(/(\d{2})\/(\d{2})\/(\d{2})/, '20$3-$2-$1'));
-            return dateB - dateA;
+            const ao = Number((a.order_number || '').toString().replace(/[^0-9.-]/g, '')) || 0;
+            const bo = Number((b.order_number || '').toString().replace(/[^0-9.-]/g, '')) || 0;
+            return bo - ao;
         });
         
         let html = `
