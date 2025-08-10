@@ -66,6 +66,29 @@ def upload_file():
             content = file.read().decode('utf-8')
             data = json.loads(content)
             
+            if isinstance(data, dict) and 'text' in data:
+                import re
+                extracted_data = []
+                for text_item in data['text']:
+                    json_matches = re.findall(r'```json\n(.*?)\n```', text_item, re.DOTALL)
+                    for json_match in json_matches:
+                        try:
+                            parsed_json = json.loads(json_match)
+                            if isinstance(parsed_json, list):
+                                extracted_data.extend(parsed_json)
+                            else:
+                                extracted_data.append(parsed_json)
+                        except json.JSONDecodeError:
+                            continue
+                
+                if extracted_data:
+                    data = extracted_data
+                else:
+                    return jsonify({'error': 'Dify形式のJSONからデータを抽出できませんでした'}), 400
+            
+            if not isinstance(data, list):
+                return jsonify({'error': 'JSONデータは配列形式である必要があります'}), 400
+            
             return jsonify({'success': True, 'data': data})
         except Exception as e:
             return jsonify({'error': f'JSONファイルの読み込みに失敗しました: {str(e)}'}), 400
