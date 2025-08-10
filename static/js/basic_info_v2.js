@@ -1,4 +1,4 @@
-const BASIC_INFO_V2_BUILD = '20250810-v2-a3';
+const BASIC_INFO_V2_BUILD = '20250810-v2-a5';
 function parseNumber(val) {
     if (val === null || val === undefined) return 0;
     if (typeof val === 'number') return isFinite(val) ? val : 0;
@@ -75,7 +75,7 @@ onDOMReady(() => {
 
     function formatDate(val) {
         if (!val) return '';
-        return val; // keep original string
+        return val;
     }
 
     function renderTable(data) {
@@ -107,9 +107,29 @@ onDOMReady(() => {
             const deliveryNo   = getVal(row, ['納入先番号','delivery_number','deliveryNumber']);
             const person       = getVal(row, ['担当者','person_in_charge','personInCharge']);
             const shippingCost = parseNumber(getVal(row, ['運賃','shipping_cost','shippingCost']));
-            const partsTotal   = parseNumber(getVal(row, ['部品合計','parts_total','partsTotal']));
-            let total          = parseNumber(getVal(row, ['税抜合計','total_amount','totalAmount']));
-            if (!total) total = partsTotal + shippingCost;
+            const saRaw = row['売上金額'] || row['sales_amounts'] || row['salesAmounts'];
+            const qtRaw = row['数量'] || row['quantities'] || row['quantities'];
+            const upRaw = row['売上単価'] || row['unit_prices'] || row['unitPrices'];
+            let partsTotal = 0;
+            if (Array.isArray(saRaw) && saRaw.length > 0) {
+                partsTotal = saRaw.reduce((s, v) => s + parseNumber(v), 0);
+            } else if ((Array.isArray(qtRaw) && qtRaw.length > 0) || (Array.isArray(upRaw) && upRaw.length > 0)) {
+                const L = Math.max(Array.isArray(qtRaw) ? qtRaw.length : 0, Array.isArray(upRaw) ? upRaw.length : 0);
+                for (let i = 0; i < L; i++) {
+                    const q = Array.isArray(qtRaw) ? parseNumber(qtRaw[i]) : 0;
+                    const p = Array.isArray(upRaw) ? parseNumber(upRaw[i]) : 0;
+                    partsTotal += q * p;
+                }
+            } else {
+                partsTotal = parseNumber(getVal(row, ['部品合計','parts_total','partsTotal']));
+            }
+            const totalRaw = parseNumber(getVal(row, ['税抜合計','total_amount','totalAmount']));
+            let total;
+            if (Array.isArray(saRaw) || Array.isArray(qtRaw) || Array.isArray(upRaw)) {
+                total = partsTotal + shippingCost;
+            } else {
+                total = totalRaw || (partsTotal + shippingCost);
+            }
             html += `
                 <tr data-mode="pending" data-index="${idx}">
                     <td>${formatDate(shipmentDate)}</td>
@@ -120,12 +140,11 @@ onDOMReady(() => {
                     <td>${formatCurrency(partsTotal)}</td>
                     <td>${formatCurrency(total)}</td>
                     <td>
-                        <a href="#" class="btn btn-info" data-action="parts" data-index="${idx}">部品詳細</a>
+                        <a href="/parts_info/pending?index=${idx}" class="btn btn-info">部品詳細</a>
                     </td>
                     <td>
                         <button class="btn btn-warning" data-action="edit" data-index="${idx}">編集</button>
                         <button class="btn btn-danger" data-action="delete" data-index="${idx}">削除</button>
-                        <button class="btn btn-secondary" data-action="test" data-index="${idx}">テスト</button>
                     </td>
                     <td>
                         <input type="checkbox" class="row-check" data-index="${idx}">
@@ -216,17 +235,6 @@ onDOMReady(() => {
         if (isNaN(index) || !pending || !pending[index]) return;
         e.preventDefault();
         e.stopPropagation();
-
-        if (action === 'test') {
-            try { window.alert('テストボタンの動作確認'); } catch (_) {}
-            try { showMessage('テストボタンがクリックされました', 'info'); } catch (_) {}
-            return;
-        }
-
-        if (action === 'parts') {
-            showMessage('未保存データのため「部品詳細」は保存後にご利用ください。', 'warning');
-            return;
-        }
 
         if (action === 'delete') {
             if (!confirm('この行を削除しますか？（未保存データ）')) return;

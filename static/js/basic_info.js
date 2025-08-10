@@ -166,7 +166,8 @@ onDOMReady(() => {
                     showMessage(result.error || 'データの保存に失敗しました', 'error');
                 }
             } catch (error) {
-                showMessage('データの保存中にエラーが発生しました', 'error');
+                const msg = (error && error.message) ? `データの保存中にエラーが発生しました: ${error.message}` : 'データの保存中にエラーが発生しました';
+                showMessage(msg, 'error');
                 console.error('Save selected error:', error);
             }
         });
@@ -203,15 +204,6 @@ onDOMReady(() => {
         return;
     }, true);
 
-    tableContainer.addEventListener('click', function(e) {
-        const btn = e.target.closest('[data-action="test"]');
-        if (!btn || !tableContainer.contains(btn)) return;
-        e.preventDefault();
-        e.stopPropagation();
-        try { window.alert('テストボタンの動作確認'); } catch (_) {}
-        try { showMessage('テストボタンがクリックされました', 'info'); } catch (_) {}
-        return;
-    }, true);
 
 
     window.addEventListener('storage', function(e) {
@@ -286,7 +278,6 @@ onDOMReady(() => {
                     <td>
                         <button class="btn btn-warning" onclick="editRecord(${record.id})">編集</button>
                         <button type="button" class="btn btn-danger" data-action="delete" data-id="${record.id}">削除</button>
-                        <button type="button" class="btn btn-secondary" data-action="test" data-id="${record.id}">テスト</button>
                     </td>
                     <td>
                         <input type="checkbox" class="row-check-db" data-id="${record.id}">
