@@ -179,11 +179,11 @@ def fetch_data_from_dify():
         
         workflow_payload = {
             "inputs": {
-                "input_file": {
+                "input_file": [{
                     "type": file_type,
                     "transfer_method": "local_file", 
                     "upload_file_id": file_id
-                }
+                }]
             },
             "response_mode": "blocking",
             "user": "purchases-maintenance-app"
@@ -199,15 +199,18 @@ def fetch_data_from_dify():
         )
         
         print(f"DEBUG: Workflow response status: {workflow_response.status_code}")
-        print(f"DEBUG: Workflow response text: {workflow_response.text}")
         
         if workflow_response.status_code != 200:
+            print(f"DEBUG: Full workflow error response: {workflow_response.text}")
             return jsonify({
                 'error': f'Difyワークフロー実行エラー: {workflow_response.status_code} - {workflow_response.text}'
             }), 500
         
         workflow_result = workflow_response.json()
-        print(f"DEBUG: Workflow result: {workflow_result}")
+        
+        if 'data' in workflow_result and workflow_result['data'].get('status') == 'failed':
+            error_msg = workflow_result['data'].get('error', 'Unknown workflow error')
+            return jsonify({'error': f'Difyワークフロー実行失敗: {error_msg}'}), 500
         
         if 'data' in workflow_result and 'outputs' in workflow_result['data']:
             outputs = workflow_result['data']['outputs']
@@ -219,11 +222,21 @@ def fetch_data_from_dify():
             
             try:
                 if isinstance(text_data, str):
-                    data = json.loads(text_data)
+                    cleaned_text = text_data.strip()
+                    if not cleaned_text or cleaned_text in ['[]', '[\n]', '[\n\n]']:
+                        return jsonify({
+                            'error': 'Difyから有効なデータが抽出されませんでした（画像に請求書データが含まれていない可能性があります）'
+                        }), 500
+                    
+                    data = json.loads(cleaned_text)
+                    if isinstance(data, list) and len(data) == 0:
+                        return jsonify({
+                            'error': 'Difyから有効なデータが抽出されませんでした（空の配列が返されました）'
+                        }), 500
                 else:
                     data = text_data
-            except json.JSONDecodeError:
-                return jsonify({'error': 'Difyから返されたテキストデータの形式が正しくありません'}), 500
+            except json.JSONDecodeError as e:
+                return jsonify({'error': f'JSON解析エラー: {str(e)}'}), 500
             
             if not isinstance(data, list):
                 return jsonify({'error': 'データは配列形式である必要があります'}), 400
@@ -300,11 +313,11 @@ def fetch_data_from_dify_multiple():
                 
                 workflow_payload = {
                     "inputs": {
-                        "input_file": {
+                        "input_file": [{
                             "type": file_type,
                             "transfer_method": "local_file", 
                             "upload_file_id": file_id
-                        }
+                        }]
                     },
                     "response_mode": "blocking",
                     "user": "purchases-maintenance-app"
@@ -322,10 +335,20 @@ def fetch_data_from_dify_multiple():
                 print(f"DEBUG: Workflow response status for {file.filename}: {workflow_response.status_code}")
                 
                 if workflow_response.status_code != 200:
-                    errors.append(f'{file.filename}: ワークフロー実行エラー ({workflow_response.status_code})')
+                    error_detail = workflow_response.text if workflow_response.text else "Unknown error"
+                    print(f"DEBUG: Full workflow error response for {file.filename}: {workflow_response.text}")
+                    errors.append(f'{file.filename}: ワークフロー実行エラー ({workflow_response.status_code}): {error_detail}')
                     continue
                 
                 workflow_result = workflow_response.json()
+                print(f"DEBUG: Workflow result status for {file.filename}: {workflow_result.get('data', {}).get('status', 'unknown')}")
+                if 'data' in workflow_result and workflow_result['data'].get('status') == 'failed':
+                    error_msg = workflow_result['data'].get('error', 'Unknown workflow error')
+                    if 'Provided image is not valid' in error_msg:
+                        errors.append(f'{file.filename}: 画像が無効です（画像形式またはファイルが破損している可能性があります）')
+                    else:
+                        errors.append(f'{file.filename}: Difyワークフロー実行失敗: {error_msg}')
+                    continue
                 
                 if 'data' in workflow_result and 'outputs' in workflow_result['data']:
                     outputs = workflow_result['data']['outputs']
@@ -335,18 +358,23 @@ def fetch_data_from_dify_multiple():
                         
                         try:
                             if isinstance(text_data, str):
-                                data = json.loads(text_data)
+                                cleaned_text = text_data.strip()
+                                if not cleaned_text or cleaned_text in ['[]', '[\n]', '[\n\n]']:
+                                    errors.append(f'{file.filename}: Difyから有効なデータが抽出されませんでした（画像に請求書データが含まれていない可能性があります）')
+                                    continue
+                                
+                                data = json.loads(cleaned_text)
                             else:
                                 data = text_data
                             
-                            if isinstance(data, list):
+                            if isinstance(data, list) and len(data) > 0:
                                 all_data.extend(data)
                                 processed_count += 1
                                 print(f"DEBUG: Successfully processed {file.filename}, added {len(data)} records")
                             else:
-                                errors.append(f'{file.filename}: データ形式エラー（配列ではありません）')
-                        except json.JSONDecodeError:
-                            errors.append(f'{file.filename}: JSON解析エラー')
+                                errors.append(f'{file.filename}: Difyから有効なデータが抽出されませんでした（空の配列が返されました）')
+                        except json.JSONDecodeError as e:
+                            errors.append(f'{file.filename}: JSON解析エラー: {str(e)}')
                     else:
                         errors.append(f'{file.filename}: テキストデータが見つかりません')
                 else:
@@ -365,8 +393,6 @@ def fetch_data_from_dify_multiple():
             'total_count': len(files),
             'errors': errors
         }
-        
-        print(f"DEBUG: Multiple file processing complete. Processed: {processed_count}/{len(files)}, Total records: {len(all_data)}")
         
         return jsonify(result)
         
