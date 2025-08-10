@@ -1,8 +1,30 @@
 onDOMReady(() => {
     const confirmBtn = document.getElementById('confirmData');
     const tableContainer = document.getElementById('purchaseListTable');
+    const deleteAllBtn = document.getElementById('deleteAll');
     
     confirmBtn.addEventListener('click', loadPurchaseList);
+    if (deleteAllBtn) {
+        deleteAllBtn.addEventListener('click', async () => {
+            const ok = window.confirm('本当にデータベース内の仕入データを全て削除しますか？（開発用）');
+            if (!ok) return;
+            deleteAllBtn.disabled = true;
+            try {
+                const res = await apiCall('/api/delete_all_data', { method: 'POST' });
+                if (res && res.success) {
+                    tableContainer.innerHTML = '<div class="empty-state">データがありません</div>';
+                    alert('全件削除しました（開発用）');
+                } else {
+                    alert((res && res.error) || '削除に失敗しました');
+                }
+            } catch (e) {
+                console.error('delete all error', e);
+                alert('削除中にエラーが発生しました');
+            } finally {
+                deleteAllBtn.disabled = false;
+            }
+        });
+    }
     
     async function loadPurchaseList() {
         try {
