@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}部品情報 - 仕入管理システム{% endblock %}
+{% block title %}部品情報 - 仕入管理システム Ver2.0{% endblock %}
 
 {% block content %}
 <div class="parts-info-section">
@@ -20,5 +20,5 @@
 <script>
     const basicId = {{ basic_id }};
 </script>
-<script src="{{ url_for('static', filename='js/parts_info.js') }}"></script>
+<script src="{{ url_for('static', filename='js/parts_info.js') }}?v=20250810-2"></script>
 {% endblock %}

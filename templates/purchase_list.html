@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}仕入一覧 - 仕入管理システム{% endblock %}
+{% block title %}仕入一覧 - 仕入管理システム Ver2.0{% endblock %}
 
 {% block content %}
 <div class="purchase-list-section">
@@ -18,5 +18,5 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/purchase_list.js') }}"></script>
+<script src="{{ url_for('static', filename='js/purchase_list.js') }}?v=20250810-2"></script>
 {% endblock %}
