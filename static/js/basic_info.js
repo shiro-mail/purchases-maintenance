@@ -198,6 +198,9 @@ onDOMReady(() => {
         }, 1000);
         try { console.log('[delete-click] document capture handler reached for id=', btn.getAttribute('data-id')); } catch (_) {}
         try { window.confirm('削除していいですか？'); } catch (_) {}
+        return;
+    }, true);
+
     tableContainer.addEventListener('click', function(e) {
         const btn = e.target.closest('[data-action="test"]');
         if (!btn || !tableContainer.contains(btn)) return;
@@ -205,9 +208,6 @@ onDOMReady(() => {
         e.stopPropagation();
         try { window.alert('テストボタンの動作確認'); } catch (_) {}
         try { showMessage('テストボタンがクリックされました', 'info'); } catch (_) {}
-        return;
-    }, true);
-
         return;
     }, true);
 
