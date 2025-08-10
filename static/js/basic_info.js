@@ -99,7 +99,41 @@ onDOMReady(() => {
                 showMessage('保存するデータを選択してください', 'warning');
                 return;
             }
-            const toSave = checked.map(i => pending[i]);
+            function ensureArray(val) {
+                if (Array.isArray(val)) return val;
+                if (val === undefined || val === null) return [];
+                return [val];
+            }
+            function toIntString(v) {
+                const n = parseInt(v || 0, 10);
+                return String(isNaN(n) ? 0 : n);
+            }
+            const toSave = checked.map(i => {
+                const rec = {...pending[i]};
+                let amounts = ensureArray(rec['売上金額']).map(toIntString);
+                let quantities = ensureArray(rec['数量']).map(toIntString);
+                let unitPrices = ensureArray(rec['売上単価']).map(toIntString);
+                let partNos = ensureArray(rec['部品番号']);
+                let partNames = ensureArray(rec['部品名']);
+                const partsTotal = (amounts || []).reduce((sum, v) => sum + (parseInt(v, 10) || 0), 0);
+                const shipping = parseInt(rec['運賃'] || 0, 10) || 0;
+                const taxExcludedTotal = shipping + partsTotal;
+                const L = partNos.length;
+                amounts = (amounts || []).slice(0, L);
+                quantities = (quantities || []).slice(0, L);
+                unitPrices = (unitPrices || []).slice(0, L);
+                partNames = (partNames || []).slice(0, L);
+                return {
+                    ...rec,
+                    '運賃': String(shipping),
+                    '部品番号': partNos,
+                    '部品名': partNames,
+                    '数量': quantities,
+                    '売上単価': unitPrices,
+                    '売上金額': amounts,
+                    '税抜合計': taxExcludedTotal
+                };
+            });
             try {
                 showMessage('データを保存中...', 'info');
                 const result = await apiCall('/api/save_data', {
