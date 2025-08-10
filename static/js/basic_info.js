@@ -1,11 +1,124 @@
 onDOMReady(() => {
     const refreshBtn = document.getElementById('refreshData');
+    const saveBtn = document.getElementById('saveSelected');
     const tableContainer = document.getElementById('basicInfoTable');
-    
-    loadBasicInfo();
-    
-    refreshBtn.addEventListener('click', loadBasicInfo);
-    
+
+    let pendingRaw = localStorage.getItem('pendingImport');
+    let pending = null;
+    try { pending = pendingRaw ? JSON.parse(pendingRaw) : null; } catch (e) { pending = null; }
+
+    function enableSave(enabled) {
+        if (saveBtn) saveBtn.disabled = !enabled;
+    }
+
+    function displayPending(data) {
+        if (!data || data.length === 0) {
+            tableContainer.innerHTML = '<div class="empty-state">保存対象のデータがありません。</div>';
+            return;
+        }
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>出荷日</th>
+                        <th>受注番号</th>
+                        <th>納入先番号</th>
+                        <th>担当者</th>
+                        <th>運賃</th>
+                        <th>部品合計</th>
+                        <th>税抜合計</th>
+                        <th>選択</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        data.forEach((record, index) => {
+            const amountsArray = Array.isArray(record['売上金額']) ? record['売上金額'] : [record['売上金額']];
+            const partsTotal = (amountsArray || []).reduce((sum, v) => {
+                const n = parseInt(v || 0, 10);
+                return sum + (isNaN(n) ? 0 : n);
+            }, 0);
+            const shippingCost = parseInt(record['運賃'] || 0, 10);
+            const totalAmount = (isNaN(shippingCost) ? 0 : shippingCost) + partsTotal;
+            html += `
+                <tr>
+                    <td>${formatDate(record['出荷日'])}</td>
+                    <td>${record['受注番号']}</td>
+                    <td>${record['納入先番号']}</td>
+                    <td>${record['担当者']}</td>
+                    <td>${formatCurrency(shippingCost || 0)}</td>
+                    <td>${formatCurrency(partsTotal)}</td>
+                    <td>${formatCurrency(totalAmount)}</td>
+                    <td><input type="checkbox" class="row-check" data-index="${index}"></td>
+                </tr>
+            `;
+        });
+        html += `
+                </tbody>
+            </table>
+        `;
+        tableContainer.innerHTML = html;
+    }
+
+    function refreshView() {
+        pendingRaw = localStorage.getItem('pendingImport');
+        try { pending = pendingRaw ? JSON.parse(pendingRaw) : null; } catch (e) { pending = null; }
+        if (Array.isArray(pending) && pending.length > 0) {
+            enableSave(true);
+            displayPending(pending);
+        } else {
+            enableSave(false);
+            loadBasicInfo();
+        }
+    }
+
+    refreshView();
+
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', refreshView);
+    }
+    if (saveBtn) {
+        saveBtn.addEventListener('click', async () => {
+            if (!Array.isArray(pending) || pending.length === 0) {
+                showMessage('保存対象のデータがありません', 'warning');
+                return;
+            }
+            const checked = Array.from(document.querySelectorAll('input.row-check[type="checkbox"]:checked'))
+                .map(cb => parseInt(cb.dataset.index, 10))
+                .filter(i => !isNaN(i));
+            if (checked.length === 0) {
+                showMessage('保存するデータを選択してください', 'warning');
+                return;
+            }
+            const toSave = checked.map(i => pending[i]);
+            try {
+                showMessage('データを保存中...', 'info');
+                const result = await apiCall('/api/save_data', {
+                    method: 'POST',
+                    body: JSON.stringify(toSave)
+                });
+                if (result.success) {
+                    pending = pending.filter((_, idx) => !checked.includes(idx));
+                    if (pending.length > 0) {
+                        try { localStorage.setItem('pendingImport', JSON.stringify(pending)); } catch (e) {}
+                        displayPending(pending);
+                        showMessage('選択したデータを保存しました', 'success');
+                    } else {
+                        localStorage.removeItem('pendingImport');
+                        enableSave(false);
+                        showMessage('選択したデータを保存しました（全件保存済み）', 'success');
+                        loadBasicInfo();
+                    }
+                } else {
+                    showMessage(result.error || 'データの保存に失敗しました', 'error');
+                }
+            } catch (error) {
+                showMessage('データの保存中にエラーが発生しました', 'error');
+                console.error('Save selected error:', error);
+            }
+        });
+    }
+
     window.addEventListener('storage', function(e) {
         if (e.key === 'partsUpdated') {
             loadBasicInfo();
