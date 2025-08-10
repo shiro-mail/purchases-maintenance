@@ -241,7 +241,7 @@ onDOMReady(() => {
                     </td>
                     <td>
                         <button class="btn btn-warning" onclick="editRecord(${record.id})">編集</button>
-                        <button class="btn btn-danger" onclick="deleteRecord(${record.id})">削除</button>
+                        <a href="/basic_info/delete/${record.id}" class="btn btn-danger" onclick="return confirm('このレコードを削除しますか？関連する部品情報も全て削除されます。')">削除</a>
                     </td>
                     <td>
                         <input type="checkbox" class="row-check-db" data-id="${record.id}">
