@@ -1,4 +1,54 @@
-const BASIC_INFO_V2_BUILD = '20250810-v2-a1';
+const BASIC_INFO_V2_BUILD = '20250810-v2-a3';
+function parseNumber(val) {
+    if (val === null || val === undefined) return 0;
+    if (typeof val === 'number') return isFinite(val) ? val : 0;
+    if (typeof val === 'string') {
+        const s = val.replace(/[￥,\s]/g, '');
+        const n = Number(s);
+        return isNaN(n) ? 0 : n;
+    }
+    return 0;
+}
+
+function getVal(obj, keys) {
+    for (const k of keys) {
+        if (obj && obj[k] !== undefined && obj[k] !== null && obj[k] !== '') return obj[k];
+    }
+    return '';
+}
+function mapToJapaneseRecord(src) {
+    const shipmentDate = getVal(src, ['出荷日','shipment_date','shipmentDate']) || '';
+    const orderNumber  = getVal(src, ['受注番号','order_number','orderNumber']) || '';
+    const deliveryNo   = getVal(src, ['納入先番号','delivery_number','deliveryNumber']) || '';
+    const person       = getVal(src, ['担当者','person_in_charge','personInCharge']) || '';
+    const shippingCost = parseNumber(getVal(src, ['運賃','shipping_cost','shippingCost']));
+    const partsTotal   = parseNumber(getVal(src, ['部品合計','parts_total','partsTotal']));
+    let total          = parseNumber(getVal(src, ['税抜合計','total_amount','totalAmount']));
+    if (!total) total = partsTotal + shippingCost;
+
+    const arr = (v) => Array.isArray(v) ? v : [];
+    const partNumbers = arr(src['部品番号'] || src['part_numbers'] || src['partNumbers']);
+    const partNames   = arr(src['部品名']   || src['part_names']   || src['partNames']);
+    const quantities  = arr(src['数量']     || src['quantities']   || src['quantities']);
+    const unitPrices  = arr(src['売上単価'] || src['unit_prices']  || src['unitPrices']);
+    const salesAmts   = arr(src['売上金額'] || src['sales_amounts']|| src['salesAmounts']);
+
+    return {
+        出荷日: shipmentDate,
+        受注番号: orderNumber,
+        納入先番号: deliveryNo,
+        担当者: person,
+        運賃: shippingCost,
+        税抜合計: total,
+        部品番号: partNumbers,
+        部品名: partNames,
+        数量: quantities.map(n => parseNumber(n)),
+        売上単価: unitPrices.map(n => parseNumber(n)),
+        売上金額: salesAmts.map(n => parseNumber(n)),
+    };
+}
+
+
 
 onDOMReady(() => {
     const tableContainer = document.getElementById('basicInfoTable');
@@ -52,15 +102,20 @@ onDOMReady(() => {
                 <tbody>
         `;
         data.forEach((row, idx) => {
-            const partsTotal = Number(row.parts_total || row.partsTotal || 0);
-            const shippingCost = Number(row.shipping_cost || row.shippingCost || 0);
-            const total = Number(row.total_amount || row.totalAmount || (partsTotal + shippingCost));
+            const shipmentDate = getVal(row, ['出荷日','shipment_date','shipmentDate']);
+            const orderNumber  = getVal(row, ['受注番号','order_number','orderNumber']);
+            const deliveryNo   = getVal(row, ['納入先番号','delivery_number','deliveryNumber']);
+            const person       = getVal(row, ['担当者','person_in_charge','personInCharge']);
+            const shippingCost = parseNumber(getVal(row, ['運賃','shipping_cost','shippingCost']));
+            const partsTotal   = parseNumber(getVal(row, ['部品合計','parts_total','partsTotal']));
+            let total          = parseNumber(getVal(row, ['税抜合計','total_amount','totalAmount']));
+            if (!total) total = partsTotal + shippingCost;
             html += `
                 <tr data-mode="pending" data-index="${idx}">
-                    <td>${formatDate(row.shipment_date || row.shipmentDate)}</td>
-                    <td>${row.order_number || row.orderNumber || ''}</td>
-                    <td>${row.delivery_number || row.deliveryNumber || ''}</td>
-                    <td>${row.person_in_charge || row.personInCharge || ''}</td>
+                    <td>${formatDate(shipmentDate)}</td>
+                    <td>${orderNumber}</td>
+                    <td>${deliveryNo}</td>
+                    <td>${person}</td>
                     <td>${formatCurrency(shippingCost)}</td>
                     <td>${formatCurrency(partsTotal)}</td>
                     <td>${formatCurrency(total)}</td>
@@ -114,12 +169,14 @@ onDOMReady(() => {
             }
 
             const toSave = checked.map(i => pending[i]).filter(Boolean);
+            const payload = toSave.map(item => mapToJapaneseRecord(item));
+            console.log('Saving payload:', payload);
 
             try {
                 showMessage('データを保存中...', 'info');
                 const result = await apiCall('/api/save_data', {
                     method: 'POST',
-                    body: JSON.stringify(toSave)
+                    body: JSON.stringify(payload)
                 });
                 if (result && result.success) {
                     const keep = [];
@@ -142,7 +199,8 @@ onDOMReady(() => {
                     showMessage((result && result.error) || 'データの保存に失敗しました', 'error');
                 }
             } catch (error) {
-                showMessage('データの保存中にエラーが発生しました', 'error');
+                const msg = (error && error.message) ? `データの保存中にエラーが発生しました: ${error.message}` : 'データの保存中にエラーが発生しました';
+                showMessage(msg, 'error');
                 console.error('Save selected error:', error);
             }
         });
@@ -202,31 +260,31 @@ onDOMReady(() => {
                         <form id="editFormPending">
                             <div class="form-group">
                                 <label>出荷日</label>
-                                <input type="text" name="shipment_date" value="${row.shipment_date || row.shipmentDate || ''}">
+                                <input type="text" name="shipment_date" value="${getVal(row, ['出荷日','shipment_date','shipmentDate'])}">
                             </div>
                             <div class="form-group">
                                 <label>受注番号</label>
-                                <input type="text" name="order_number" value="${row.order_number || row.orderNumber || ''}">
+                                <input type="text" name="order_number" value="${getVal(row, ['受注番号','order_number','orderNumber'])}">
                             </div>
                             <div class="form-group">
                                 <label>納入先番号</label>
-                                <input type="text" name="delivery_number" value="${row.delivery_number || row.deliveryNumber || ''}">
+                                <input type="text" name="delivery_number" value="${getVal(row, ['納入先番号','delivery_number','deliveryNumber'])}">
                             </div>
                             <div class="form-group">
                                 <label>担当者</label>
-                                <input type="text" name="person_in_charge" value="${row.person_in_charge || row.personInCharge || ''}">
+                                <input type="text" name="person_in_charge" value="${getVal(row, ['担当者','person_in_charge','personInCharge'])}">
                             </div>
                             <div class="form-group">
                                 <label>運賃</label>
-                                <input type="number" name="shipping_cost" value="${row.shipping_cost || row.shippingCost || 0}">
+                                <input type="number" name="shipping_cost" value="${parseNumber(getVal(row, ['運賃','shipping_cost','shippingCost']))}">
                             </div>
                             <div class="form-group">
                                 <label>部品合計</label>
-                                <input type="number" name="parts_total" value="${row.parts_total || row.partsTotal || 0}">
+                                <input type="number" name="parts_total" value="${parseNumber(getVal(row, ['部品合計','parts_total','partsTotal']))}">
                             </div>
                             <div class="form-group">
                                 <label>税抜合計</label>
-                                <input type="number" name="total_amount" value="${row.total_amount || row.totalAmount || 0}">
+                                <input type="number" name="total_amount" value="${parseNumber(getVal(row, ['税抜合計','total_amount','totalAmount']))}">
                             </div>
                         </form>
                     </div>
@@ -259,6 +317,13 @@ onDOMReady(() => {
                     shipping_cost: Number(fd.get('shipping_cost') || 0),
                     parts_total: Number(fd.get('parts_total') || 0),
                     total_amount: Number(fd.get('total_amount') || 0),
+                    出荷日: fd.get('shipment_date') || '',
+                    受注番号: fd.get('order_number') || '',
+                    納入先番号: fd.get('delivery_number') || '',
+                    担当者: fd.get('person_in_charge') || '',
+                    運賃: Number(fd.get('shipping_cost') || 0),
+                    部品合計: Number(fd.get('parts_total') || 0),
+                    税抜合計: Number(fd.get('total_amount') || 0),
                 };
                 pending[index] = Object.assign({}, pending[index], updated);
                 try { localStorage.setItem('pendingImport', JSON.stringify(pending)); } catch (e) {}
