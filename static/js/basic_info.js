@@ -169,27 +169,6 @@ onDOMReady(() => {
             }
         });
     }
-    tableContainer.addEventListener('click', (ev) => {
-        const el = ev.target.closest('.action');
-        if (!el || !tableContainer.contains(el)) return;
-        const action = el.getAttribute('data-action');
-        const id = parseInt(el.getAttribute('data-id'), 10);
-        if (!action || isNaN(id)) return;
-        ev.preventDefault();
-        if (action === 'parts') {
-            try { window.location.href = `/parts_info/${id}`; } catch (e) { window.location.assign(`/parts_info/${id}`); }
-            return;
-        }
-        if (action === 'edit') {
-            if (typeof window.editRecord === 'function') window.editRecord(id);
-            return;
-        }
-        if (action === 'delete') {
-            if (typeof window.deleteRecord === 'function') window.deleteRecord(id);
-            return;
-        }
-    });
-
 
     window.addEventListener('storage', function(e) {
         if (e.key === 'partsUpdated') {
@@ -258,11 +237,11 @@ onDOMReady(() => {
                     <td>${formatCurrency(record.parts_total)}</td>
                     <td>${formatCurrency(record.total_amount)}</td>
                     <td>
-                        <a href="/parts_info/${record.id}" class="btn btn-info action" data-action="parts" data-id="${record.id}" role="button">部品詳細</a>
+                        <a href="/parts_info/${record.id}" class="btn btn-info" role="button">部品詳細</a>
                     </td>
                     <td>
-                        <button class="btn btn-warning action" data-action="edit" data-id="${record.id}">編集</button>
-                        <button class="btn btn-danger action" data-action="delete" data-id="${record.id}">削除</button>
+                        <button class="btn btn-warning" onclick="editRecord(${record.id})">編集</button>
+                        <button class="btn btn-danger" onclick="deleteRecord(${record.id})">削除</button>
                     </td>
                     <td>
                         <input type="checkbox" class="row-check-db" data-id="${record.id}">
