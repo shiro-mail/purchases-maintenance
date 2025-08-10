@@ -66,6 +66,61 @@ def upload_file():
             content = file.read().decode('utf-8')
             data = json.loads(content)
             
+            if isinstance(data, dict) and 'text' in data:
+                import re
+                extracted_data = []
+                for item in data['text']:
+                    if isinstance(item, dict):
+                        transformed_item = {
+                            '出荷日': item.get('出荷日', ''),
+                            '受注番号': item.get('受注番号', ''),
+                            '納入先番号': item.get('納入先番号', ''),
+                            '担当者': item.get('担当者', ''),
+                            '運賃': item.get('運賃', 0),
+                            '税抜合計': item.get('税抜合計', 0)
+                        }
+                        
+                        if '明細' in item and isinstance(item['明細'], list):
+                            parts_numbers = []
+                            parts_names = []
+                            quantities = []
+                            unit_prices = []
+                            amounts = []
+                            
+                            for detail in item['明細']:
+                                parts_numbers.append(detail.get('部品番号', ''))
+                                parts_names.append(detail.get('部品名', ''))
+                                quantities.append(str(detail.get('数量', 0)))
+                                unit_prices.append(str(detail.get('売上単価', 0)))
+                                amounts.append(str(detail.get('売上金額', 0)))
+                            
+                            transformed_item['部品番号'] = parts_numbers
+                            transformed_item['部品名'] = parts_names
+                            transformed_item['数量'] = quantities
+                            transformed_item['売上単価'] = unit_prices
+                            transformed_item['売上金額'] = amounts
+                        
+                        extracted_data.append(transformed_item)
+                    else:
+                        json_matches = re.findall(r'```json\n(.*?)\n```', str(item), re.DOTALL)
+                        for json_match in json_matches:
+                            try:
+                                parsed_json = json.loads(json_match)
+                                if isinstance(parsed_json, list):
+                                    extracted_data.extend(parsed_json)
+                                else:
+                                    extracted_data.append(parsed_json)
+                            except json.JSONDecodeError:
+                                continue
+                
+                if extracted_data:
+                    data = extracted_data
+                else:
+                    return jsonify({'error': 'Dify形式のJSONからデータを抽出できませんでした'}), 400
+            
+            if not isinstance(data, list):
+                return jsonify({'error': 'JSONデータは配列形式である必要があります'}), 400
+            
             return jsonify({'success': True, 'data': data})
         except Exception as e:
             return jsonify({'error': f'JSONファイルの読み込みに失敗しました: {str(e)}'}), 400
