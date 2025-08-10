@@ -1,3 +1,4 @@
+const BASIC_INFO_JS_BUILD = '20250810-8';
 window.openPartsDetail = function(id) {
     if (id === undefined || id === null) return;
     try {
@@ -6,6 +7,7 @@ window.openPartsDetail = function(id) {
         window.location.assign(`/parts_info/${id}`);
     }
 };
+    try { if (typeof showMessage === 'function') showMessage(`basic_info.js ${BASIC_INFO_JS_BUILD} を読み込みました`, 'info'); } catch (_) {}
 onDOMReady(() => {
     const refreshBtn = document.getElementById('refreshData');
     const saveBtn = document.getElementById('saveSelected');
