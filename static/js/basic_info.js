@@ -174,14 +174,30 @@ onDOMReady(() => {
         if (!btn || !tableContainer.contains(btn)) return;
         e.preventDefault();
         e.stopPropagation();
-        window.confirm('削除していいですか？');
+        const originalText = btn.textContent;
+        btn.textContent = 'クリック認識';
+        btn.classList.add('btn-warning');
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.classList.remove('btn-warning');
+        }, 1000);
+        try { console.log('[delete-click] table capture handler reached for id=', btn.getAttribute('data-id')); } catch (_) {}
+        try { window.confirm('削除していいですか？'); } catch (_) {}
         return;
     }, true);
     document.addEventListener('click', function(e) {
         const btn = e.target.closest('[data-action="delete"]');
         if (!btn) return;
         e.preventDefault();
-        window.confirm('削除していいですか？');
+        const originalText = btn.textContent;
+        btn.textContent = 'クリック認識';
+        btn.classList.add('btn-warning');
+        setTimeout(() => {
+            btn.textContent = originalText;
+            btn.classList.remove('btn-warning');
+        }, 1000);
+        try { console.log('[delete-click] document capture handler reached for id=', btn.getAttribute('data-id')); } catch (_) {}
+        try { window.confirm('削除していいですか？'); } catch (_) {}
         return;
     }, true);
 
