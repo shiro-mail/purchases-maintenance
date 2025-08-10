@@ -1,4 +1,4 @@
-const BASIC_INFO_V2_BUILD = '20250810-v2-a3';
+const BASIC_INFO_V2_BUILD = '20250810-v2-a4';
 function parseNumber(val) {
     if (val === null || val === undefined) return 0;
     if (typeof val === 'number') return isFinite(val) ? val : 0;
@@ -75,7 +75,7 @@ onDOMReady(() => {
 
     function formatDate(val) {
         if (!val) return '';
-        return val; // keep original string
+        return val;
     }
 
     function renderTable(data) {
@@ -120,12 +120,11 @@ onDOMReady(() => {
                     <td>${formatCurrency(partsTotal)}</td>
                     <td>${formatCurrency(total)}</td>
                     <td>
-                        <a href="#" class="btn btn-info" data-action="parts" data-index="${idx}">部品詳細</a>
+                        <a href="/parts_info/pending?index=${idx}" class="btn btn-info">部品詳細</a>
                     </td>
                     <td>
                         <button class="btn btn-warning" data-action="edit" data-index="${idx}">編集</button>
                         <button class="btn btn-danger" data-action="delete" data-index="${idx}">削除</button>
-                        <button class="btn btn-secondary" data-action="test" data-index="${idx}">テスト</button>
                     </td>
                     <td>
                         <input type="checkbox" class="row-check" data-index="${idx}">
@@ -216,17 +215,6 @@ onDOMReady(() => {
         if (isNaN(index) || !pending || !pending[index]) return;
         e.preventDefault();
         e.stopPropagation();
-
-        if (action === 'test') {
-            try { window.alert('テストボタンの動作確認'); } catch (_) {}
-            try { showMessage('テストボタンがクリックされました', 'info'); } catch (_) {}
-            return;
-        }
-
-        if (action === 'parts') {
-            showMessage('未保存データのため「部品詳細」は保存後にご利用ください。', 'warning');
-            return;
-        }
 
         if (action === 'delete') {
             if (!confirm('この行を削除しますか？（未保存データ）')) return;
