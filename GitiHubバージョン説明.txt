@@ -1,2 +1,5 @@
 2025/08/09 12:59 ボタンに色付けをして、うまく動いている。
 Merge pull request #10 from shiro-mail/devin/1754713016-button-color-changes	40133f1	shiro-mail <shiro@sunyou.co.jp>	2025/08/09 12:59
+
+2025/08/10 16:46 JSONファイル、PNG画像ともに読込成功
+仕入・保守管理システムを仕入管理システムに変更	bfde878	Air <shiro736@gmail.com>	2025/08/10 16:46
