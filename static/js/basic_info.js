@@ -27,6 +27,8 @@ onDOMReady(() => {
                         <th>運賃</th>
                         <th>部品合計</th>
                         <th>税抜合計</th>
+                        <th>部品詳細</th>
+                        <th>操作</th>
                         <th>選択</th>
                     </tr>
                 </thead>
@@ -49,6 +51,13 @@ onDOMReady(() => {
                     <td>${formatCurrency(shippingCost || 0)}</td>
                     <td>${formatCurrency(partsTotal)}</td>
                     <td>${formatCurrency(totalAmount)}</td>
+                    <td>
+                        <a class="btn btn-info disabled" tabindex="-1" aria-disabled="true">部品詳細</a>
+                    </td>
+                    <td>
+                        <button class="btn btn-warning" disabled>編集</button>
+                        <button class="btn btn-danger" disabled>削除</button>
+                    </td>
                     <td><input type="checkbox" class="row-check" data-index="${index}"></td>
                 </tr>
             `;
