@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}ファイル取込 - 仕入・保守管理システム{% endblock %}
+{% block title %}ファイル取込 - 仕入システム{% endblock %}
 
 {% block content %}
 <div class="import-section">
@@ -10,7 +10,7 @@
         <div class="data-source-options">
             <div class="option-group">
                 <input type="radio" id="fileSource" name="dataSource" value="file" checked>
-                <label for="fileSource" class="source-label">ファイルから取得</label>
+                <label for="fileSource" class="source-label">JSONファイルから取得</label>
                 <div class="file-upload-section" id="fileUploadSection">
                     <form id="uploadForm" enctype="multipart/form-data">
                         <div class="file-input-wrapper">
@@ -27,7 +27,7 @@
             
             <div class="option-group">
                 <input type="radio" id="difySource" name="dataSource" value="dify">
-                <label for="difySource" class="source-label">Difyから取得</label>
+                <label for="difySource" class="source-label">PNG画像から取得</label>
                 <div class="dify-fetch-section" id="difyFetchSection" style="display: none;">
                     <form id="difyUploadForm" enctype="multipart/form-data">
                         <div class="file-input-wrapper">

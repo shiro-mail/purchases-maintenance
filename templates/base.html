@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}仕入・保守管理システム{% endblock %}</title>
+    <title>{% block title %}仕入管理システム{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1><a href="{{ url_for('index') }}">仕入・保守管理システム</a></h1>
+            <h1><a href="{{ url_for('index') }}">仕入管理システム</a></h1>
             <nav>
                 <ul>
                     <li><a href="{{ url_for('import_file') }}">ファイル取込</a></li>
