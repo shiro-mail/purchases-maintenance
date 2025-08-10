@@ -54,7 +54,6 @@ onDOMReady(() => {
     const tableContainer = document.getElementById('basicInfoTable');
     const saveBtn = document.getElementById('saveSelected');
 
-    try { if (typeof showMessage === 'function') showMessage(`basic_info_v2.js ${BASIC_INFO_V2_BUILD} を読み込みました`, 'info'); } catch (_) {}
 
     let pending = null;
     try {
