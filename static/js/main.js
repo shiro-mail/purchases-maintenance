@@ -41,12 +41,23 @@ async function apiCall(url, options = {}) {
             },
             ...options
         });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+
+        let data = null;
+        try {
+            data = await response.json();
+        } catch (_) {
+            data = null;
         }
-        
-        return await response.json();
+
+        if (!response.ok) {
+            const msg = (data && (data.error || data.message)) ? (data.error || data.message) : `HTTP error! status: ${response.status}`;
+            const err = new Error(msg);
+            err.status = response.status;
+            err.data = data;
+            throw err;
+        }
+
+        return data;
     } catch (error) {
         console.error('API call failed:', error);
         throw error;

@@ -411,6 +411,10 @@ def basic_info():
 def parts_info(basic_id):
     return render_template('parts_info.html', basic_id=basic_id)
 
+@app.route('/parts_info/pending')
+def parts_info_pending():
+    return render_template('parts_info_pending.html')
+
 @app.route('/purchase_list')
 def purchase_list():
     return render_template('purchase_list.html')
