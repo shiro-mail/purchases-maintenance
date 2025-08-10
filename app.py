@@ -620,6 +620,19 @@ def delete_basic_info(record_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/basic_info/delete/<int:record_id>', methods=['GET'])
+def delete_basic_info_page(record_id):
+    try:
+        conn = sqlite3.connect('purchases.db')
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM parts_info WHERE basic_info_id = ?', (record_id,))
+        cursor.execute('DELETE FROM basic_info WHERE id = ?', (record_id,))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('basic_info'))
+    except Exception as e:
+        return redirect(url_for('basic_info'))
+
 @app.route('/api/parts_info/<int:part_id>', methods=['PUT'])
 def update_parts_info(part_id):
     try:
