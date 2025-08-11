@@ -56,16 +56,6 @@ onDOMReady(() => {
     const tableContainer = document.getElementById('basicInfoTable');
     const saveBtn = document.getElementById('saveSelected');
 
-    function sortByOrderNumberDesc(arr) {
-        if (!Array.isArray(arr)) return [];
-        return arr.sort((a, b) => {
-            const av = getVal(a, ['受注番号','order_number','orderNumber']);
-            const bv = getVal(b, ['受注番号','order_number','orderNumber']);
-            const ao = Number((av == null ? '' : String(av)).replace(/[^0-9.-]/g, '')) || 0;
-            const bo = Number((bv == null ? '' : String(bv)).replace(/[^0-9.-]/g, '')) || 0;
-            return bo - ao;
-        });
-    }
 
 
     let pending = null;
@@ -186,7 +176,6 @@ onDOMReady(() => {
             data = [];
         }
         pending = data;
-        pending = sortByOrderNumberDesc(pending);
         enableSave(Array.isArray(pending) && pending.length > 0);
         renderTable(pending);
     }
@@ -225,7 +214,6 @@ onDOMReady(() => {
                     if (pending.length > 0) {
                         try { localStorage.setItem('pendingImport', JSON.stringify(pending)); } catch (e) {}
                         showMessage('選択したデータを保存しました', 'success');
-                        pending = sortByOrderNumberDesc(pending);
                         renderTable(pending);
                         enableSave(true);
                     } else {
@@ -263,7 +251,6 @@ onDOMReady(() => {
             pending = next;
             if (pending.length > 0) {
                 try { localStorage.setItem('pendingImport', JSON.stringify(pending)); } catch (e) {}
-                pending = sortByOrderNumberDesc(pending);
                 renderTable(pending);
                 enableSave(true);
             } else {
@@ -362,7 +349,6 @@ onDOMReady(() => {
                 };
                 pending[index] = Object.assign({}, pending[index], updated);
                 try { localStorage.setItem('pendingImport', JSON.stringify(pending)); } catch (e) {}
-                pending = sortByOrderNumberDesc(pending);
                 renderTable(pending);
                 close();
                 showMessage('未保存データを更新しました', 'success');
