@@ -198,12 +198,31 @@ onDOMReady(() => {
         };
     }
 
-    const indexStr = getParam('index');
-    const index = Number(indexStr);
+    function getVal(obj, keys) {
+        for (const key of keys) {
+            if (obj && obj.hasOwnProperty(key)) {
+                return obj[key];
+            }
+        }
+        return '';
+    }
+
+    const orderNumber = getParam('order');
     const all = loadPendingAll();
-    if (Number.isNaN(index) || !Array.isArray(all) || !all[index]) {
+    if (!orderNumber || !Array.isArray(all)) {
         container.innerHTML = '<div class="empty-state">未保存データが見つかりません</div>';
         return;
     }
-    render(all[index], index);
+    
+    const recordIndex = all.findIndex(item => {
+        const itemOrderNumber = getVal(item, ['受注番号','order_number','orderNumber']);
+        return itemOrderNumber === orderNumber;
+    });
+    
+    if (recordIndex === -1) {
+        container.innerHTML = '<div class="empty-state">指定されたデータが見つかりません</div>';
+        return;
+    }
+    
+    render(all[recordIndex], recordIndex);
 });
