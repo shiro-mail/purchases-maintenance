@@ -82,12 +82,18 @@ def upload_file():
                 for item in data['text']:
                     if isinstance(item, dict):
                         transformed_item = {
+                            'ページ': item.get('ページ', ''),
                             '出荷日': item.get('出荷日', ''),
                             '受注番号': item.get('受注番号', ''),
                             '納入先番号': item.get('納入先番号', ''),
                             '担当者': item.get('担当者', ''),
                             '運賃': item.get('運賃', 0),
-                            '税抜合計': item.get('税抜合計', 0)
+                            '税抜合計': item.get('税抜合計', 0),
+                            '部品番号': item.get('部品番号', []),
+                            '部品名': item.get('部品名', []),
+                            '数量': item.get('数量', []),
+                            '売上単価': item.get('売上単価', []),
+                            '売上金額': item.get('売上金額', [])
                         }
                         
                         if '明細' in item and isinstance(item['明細'], list):
