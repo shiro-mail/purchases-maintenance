@@ -8,7 +8,8 @@
     
     <div class="actions">
         <button id="refreshData" class="btn btn-primary">データ更新</button>
-        <button id="saveSelected" class="btn btn-success">データベースに保存</button>
+        <button id="saveSelected" class="btn btn-success" disabled>選択データを保存</button>
+        <span id="selectedCount" class="selected-count" style="display: none;">0件選択中</span>
     </div>
     <div id="messageArea" class="message-area"></div>
     
@@ -16,6 +17,10 @@
         <div class="loading">データを読み込み中...</div>
     </div>
 </div>
+{% endblock %}
+
+{% block head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/checkbox-styles.css') }}">
 {% endblock %}
 
 {% block scripts %}

@@ -1,0 +1,77 @@
+/* Master Checkbox Styles - Phase 2 Implementation */
+
+/* Master checkbox styling */
+.master-checkbox {
+    width: 16px;
+    height: 16px;
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+/* Unchecked state */
+.master-checkbox:not(:checked):not(:indeterminate) {
+    background-color: #ffffff;
+    border: 2px solid #cccccc;
+}
+
+/* Checked state */
+.master-checkbox:checked {
+    background-color: #007bff;
+    border: 2px solid #007bff;
+}
+
+/* Indeterminate state (partial selection) */
+.master-checkbox:indeterminate {
+    background-color: #6c757d;
+    border: 2px solid #6c757d;
+}
+
+/* Row checkbox styling */
+.row-checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+/* Selected count display */
+.selected-count {
+    margin-left: 10px;
+    font-weight: bold;
+    color: #007bff;
+}
+
+/* Checkbox column styling */
+.checkbox-column {
+    width: 60px;
+    text-align: center;
+}
+
+/* Table styling improvements */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table th, table td {
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    text-align: left;
+}
+
+table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+}
+
+/* Accessibility improvements */
+.master-checkbox:focus,
+.row-checkbox:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+/* Label styling for master checkbox */
+.master-checkbox + label {
+    cursor: pointer;
+    user-select: none;
+}
