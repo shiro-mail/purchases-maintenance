@@ -17,6 +17,7 @@ function getVal(obj, keys) {
     return '';
 }
 function mapToJapaneseRecord(src) {
+    const page = getVal(src, ['ページ','page','pageNumber']) || '';
     const shipmentDate = getVal(src, ['出荷日','shipment_date','shipmentDate']) || '';
     const orderNumber  = getVal(src, ['受注番号','order_number','orderNumber']) || '';
     const deliveryNo   = getVal(src, ['納入先番号','delivery_number','deliveryNumber']) || '';
@@ -34,6 +35,7 @@ function mapToJapaneseRecord(src) {
     const salesAmts   = arr(src['売上金額'] || src['sales_amounts']|| src['salesAmounts']);
 
     return {
+        ページ: page,
         出荷日: shipmentDate,
         受注番号: orderNumber,
         納入先番号: deliveryNo,
