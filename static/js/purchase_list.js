@@ -45,11 +45,6 @@ onDOMReady(() => {
     }
     
     function displayPurchaseList(data) {
-        data.sort((a, b) => {
-            const ao = Number((a.order_number || '').toString().replace(/[^0-9.-]/g, '')) || 0;
-            const bo = Number((b.order_number || '').toString().replace(/[^0-9.-]/g, '')) || 0;
-            return bo - ao;
-        });
         
         let html = `
             <div class="list-summary">
