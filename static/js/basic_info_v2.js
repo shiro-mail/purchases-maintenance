@@ -97,6 +97,7 @@ onDOMReady(() => {
             <table>
                 <thead>
                     <tr>
+                        <th>ページ</th>
                         <th>出荷日</th>
                         <th>受注番号</th>
                         <th>納入先番号</th>
@@ -112,6 +113,7 @@ onDOMReady(() => {
                 <tbody>
         `;
         data.forEach((row, idx) => {
+            const page = getVal(row, ['ページ','page','pageNumber']);
             const shipmentDate = getVal(row, ['出荷日','shipment_date','shipmentDate']);
             const orderNumber  = getVal(row, ['受注番号','order_number','orderNumber']);
             const deliveryNo   = getVal(row, ['納入先番号','delivery_number','deliveryNumber']);
@@ -142,6 +144,7 @@ onDOMReady(() => {
             }
             html += `
                 <tr data-mode="pending" data-index="${idx}">
+                    <td>${page}</td>
                     <td>${formatDate(shipmentDate)}</td>
                     <td>${orderNumber}</td>
                     <td>${deliveryNo}</td>
