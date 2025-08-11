@@ -56,16 +56,6 @@ onDOMReady(() => {
     const tableContainer = document.getElementById('basicInfoTable');
     const saveBtn = document.getElementById('saveSelected');
 
-    function sortByOrderNumberDesc(arr) {
-        if (!Array.isArray(arr)) return [];
-        return arr.sort((a, b) => {
-            const av = getVal(a, ['受注番号','order_number','orderNumber']);
-            const bv = getVal(b, ['受注番号','order_number','orderNumber']);
-            const ao = Number((av == null ? '' : String(av)).replace(/[^0-9.-]/g, '')) || 0;
-            const bo = Number((bv == null ? '' : String(bv)).replace(/[^0-9.-]/g, '')) || 0;
-            return bo - ao;
-        });
-    }
 
 
     let pending = null;
@@ -148,9 +138,9 @@ onDOMReady(() => {
                 total = totalRaw || (partsTotal + shippingCost);
             }
             html += `
-                <tr data-mode="pending" data-order="${orderNumber}">
+                <tr data-mode="pending" data-index="${idx}">
                     <td>
-                        <input type="checkbox" class="row-checkbox" data-order="${orderNumber}">
+                        <input type="checkbox" class="row-checkbox" data-index="${idx}">
                     </td>
                     <td>${page}</td>
                     <td>${formatDate(shipmentDate)}</td>
@@ -161,11 +151,11 @@ onDOMReady(() => {
                     <td>${formatCurrency(partsTotal)}</td>
                     <td>${formatCurrency(total)}</td>
                     <td>
-                        <a href="/parts_info/pending?order=${orderNumber}" class="btn btn-info">部品詳細</a>
+                        <a href="/parts_info/pending?index=${idx}" class="btn btn-info">部品詳細</a>
                     </td>
                     <td>
-                        <button class="btn btn-warning" data-action="edit" data-order="${orderNumber}">編集</button>
-                        <button class="btn btn-danger" data-action="delete" data-order="${orderNumber}">削除</button>
+                        <button class="btn btn-warning" data-action="edit" data-index="${idx}">編集</button>
+                        <button class="btn btn-danger" data-action="delete" data-index="${idx}">削除</button>
                     </td>
                 </tr>
             `;
@@ -186,7 +176,6 @@ onDOMReady(() => {
             data = [];
         }
         pending = data;
-        pending = sortByOrderNumberDesc(pending);
         enableSave(Array.isArray(pending) && pending.length > 0);
         renderTable(pending);
     }
@@ -198,17 +187,15 @@ onDOMReady(() => {
                 return;
             }
             const checked = Array.from(document.querySelectorAll('input.row-checkbox[type="checkbox"]:checked'))
-                .map(cb => cb.dataset.order)
-                .filter(order => order);
+                .map(cb => parseInt(cb.dataset.index, 10))
+                .filter(i => !isNaN(i));
 
             if (checked.length === 0) {
                 showMessage('保存するデータを選択してください', 'warning');
                 return;
             }
 
-            const toSave = checked.map(orderNumber => 
-                pending.find(item => getVal(item, ['受注番号','order_number','orderNumber']) === orderNumber)
-            ).filter(Boolean);
+            const toSave = checked.map(i => pending[i]).filter(Boolean);
             const payload = toSave.map(item => mapToJapaneseRecord(item));
             console.log('Saving payload:', payload);
 
@@ -220,15 +207,13 @@ onDOMReady(() => {
                 });
                 if (result && result.success) {
                     const keep = [];
-                    pending.forEach((item) => {
-                        const orderNumber = getVal(item, ['受注番号','order_number','orderNumber']);
-                        if (!checked.includes(orderNumber)) keep.push(item);
+                    pending.forEach((item, i) => {
+                        if (!checked.includes(i)) keep.push(item);
                     });
                     pending = keep;
                     if (pending.length > 0) {
                         try { localStorage.setItem('pendingImport', JSON.stringify(pending)); } catch (e) {}
                         showMessage('選択したデータを保存しました', 'success');
-                        pending = sortByOrderNumberDesc(pending);
                         renderTable(pending);
                         enableSave(true);
                     } else {
@@ -254,27 +239,18 @@ onDOMReady(() => {
         if (!btn) return;
 
         const action = btn.getAttribute('data-action');
-        const orderNumber = btn.getAttribute('data-order');
-        if (!orderNumber || !pending) return;
-        
-        const recordIndex = pending.findIndex(item => 
-            getVal(item, ['受注番号','order_number','orderNumber']) === orderNumber
-        );
-        if (recordIndex === -1) return;
+        const index = parseInt(btn.getAttribute('data-index'), 10);
+        if (isNaN(index) || !pending || !pending[index]) return;
         e.preventDefault();
         e.stopPropagation();
 
         if (action === 'delete') {
             if (!confirm('この行を削除しますか？（未保存データ）')) return;
             const next = [];
-            pending.forEach((item) => { 
-                const itemOrderNumber = getVal(item, ['受注番号','order_number','orderNumber']);
-                if (itemOrderNumber !== orderNumber) next.push(item); 
-            });
+            pending.forEach((item, i) => { if (i !== index) next.push(item); });
             pending = next;
             if (pending.length > 0) {
                 try { localStorage.setItem('pendingImport', JSON.stringify(pending)); } catch (e) {}
-                pending = sortByOrderNumberDesc(pending);
                 renderTable(pending);
                 enableSave(true);
             } else {
@@ -287,7 +263,7 @@ onDOMReady(() => {
         }
 
         if (action === 'edit') {
-            const row = pending[recordIndex];
+            const row = pending[index];
             const modal = document.createElement('div');
             modal.className = 'modal show';
             modal.innerHTML = `
@@ -371,9 +347,8 @@ onDOMReady(() => {
                     部品合計: Number(fd.get('parts_total') || 0),
                     税抜合計: Number(fd.get('total_amount') || 0),
                 };
-                pending[recordIndex] = Object.assign({}, pending[recordIndex], updated);
+                pending[index] = Object.assign({}, pending[index], updated);
                 try { localStorage.setItem('pendingImport', JSON.stringify(pending)); } catch (e) {}
-                pending = sortByOrderNumberDesc(pending);
                 renderTable(pending);
                 close();
                 showMessage('未保存データを更新しました', 'success');
