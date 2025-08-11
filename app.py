@@ -518,7 +518,7 @@ def api_basic_info():
     records = []
     for row in cursor.fetchall():
         parts_total = row[9]
-        calculated_total = row[6] + parts_total
+        calculated_total = row[7] + parts_total
         records.append({
             'id': row[0],
             'ページ': row[1],
@@ -541,7 +541,7 @@ def api_purchase_list():
     cursor = conn.cursor()
     
     cursor.execute('''
-        SELECT id, shipment_date, order_number, delivery_number, person_in_charge, 
+        SELECT id, page, shipment_date, order_number, delivery_number, person_in_charge, 
                shipping_cost, total_amount, created_at
         FROM basic_info 
         ORDER BY shipment_date DESC
@@ -551,13 +551,14 @@ def api_purchase_list():
     for row in cursor.fetchall():
         records.append({
             'id': row[0],
-            'shipment_date': row[1],
-            'order_number': row[2],
-            'delivery_number': row[3],
-            'person_in_charge': row[4],
-            'shipping_cost': row[5],
-            'total_amount': row[6],
-            'created_at': row[7]
+            'ページ': row[1],
+            'shipment_date': row[2],
+            'order_number': row[3],
+            'delivery_number': row[4],
+            'person_in_charge': row[5],
+            'shipping_cost': row[6],
+            'total_amount': row[7],
+            'created_at': row[8]
         })
     
     conn.close()
