@@ -58,6 +58,7 @@ onDOMReady(() => {
             <table>
                 <thead>
                     <tr>
+                        <th>ページ</th>
                         <th>出荷日</th>
                         <th>受注番号</th>
                         <th>納入先番号</th>
@@ -74,6 +75,7 @@ onDOMReady(() => {
             const createdAt = new Date(record.created_at).toLocaleString('ja-JP');
             html += `
                 <tr>
+                    <td>${record.ページ || ''}</td>
                     <td>${formatDate(record.shipment_date)}</td>
                     <td>${record.order_number}</td>
                     <td>${record.delivery_number}</td>
