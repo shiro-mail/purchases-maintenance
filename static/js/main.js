@@ -14,6 +14,16 @@ function showMessage(message, type = 'info') {
     }, 5000);
 }
 
+function formatDate(dateString) {
+    const parts = dateString.split('/');
+    if (parts.length === 3) {
+        const year = '20' + parts[0];
+        const month = parts[1];
+        const day = parts[2];
+        return `${year}年${month}月${day}日`;
+    }
+    return dateString;
+}
 
 function formatCurrency(amount) {
     return new Intl.NumberFormat('ja-JP', {
