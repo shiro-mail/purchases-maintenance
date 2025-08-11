@@ -99,6 +99,10 @@ onDOMReady(() => {
             <table>
                 <thead>
                     <tr>
+                        <th>
+                            <input type="checkbox" id="masterCheckbox" class="master-checkbox" aria-label="全選択/全解除">
+                            <label for="masterCheckbox">選択</label>
+                        </th>
                         <th>ページ</th>
                         <th>出荷日</th>
                         <th>受注番号</th>
@@ -109,7 +113,6 @@ onDOMReady(() => {
                         <th>税抜合計</th>
                         <th>部品詳細</th>
                         <th>操作</th>
-                        <th>選択</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -146,6 +149,9 @@ onDOMReady(() => {
             }
             html += `
                 <tr data-mode="pending" data-index="${idx}">
+                    <td>
+                        <input type="checkbox" class="row-checkbox" data-index="${idx}">
+                    </td>
                     <td>${page}</td>
                     <td>${formatDate(shipmentDate)}</td>
                     <td>${orderNumber}</td>
@@ -160,9 +166,6 @@ onDOMReady(() => {
                     <td>
                         <button class="btn btn-warning" data-action="edit" data-index="${idx}">編集</button>
                         <button class="btn btn-danger" data-action="delete" data-index="${idx}">削除</button>
-                    </td>
-                    <td>
-                        <input type="checkbox" class="row-check" data-index="${idx}">
                     </td>
                 </tr>
             `;
@@ -194,7 +197,7 @@ onDOMReady(() => {
                 showMessage('保存対象のデータがありません', 'warning');
                 return;
             }
-            const checked = Array.from(document.querySelectorAll('input.row-check[type="checkbox"]:checked'))
+            const checked = Array.from(document.querySelectorAll('input.row-checkbox[type="checkbox"]:checked'))
                 .map(cb => parseInt(cb.dataset.index, 10))
                 .filter(i => !isNaN(i));
 
@@ -368,6 +371,60 @@ onDOMReady(() => {
             return;
         }
     }, true);
+
+    function updateMasterCheckbox() {
+        const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+        const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+        const masterCheckbox = document.getElementById('masterCheckbox');
+        
+        if (!masterCheckbox) return;
+        
+        if (checkedCount === 0) {
+            masterCheckbox.checked = false;
+            masterCheckbox.indeterminate = false;
+        } else if (checkedCount === rowCheckboxes.length) {
+            masterCheckbox.checked = true;
+            masterCheckbox.indeterminate = false;
+        } else {
+            masterCheckbox.checked = false;
+            masterCheckbox.indeterminate = true;
+        }
+        
+        updateSelectedCount();
+        updateSaveButtonState();
+    }
+    
+    function toggleAllCheckboxes(checked) {
+        const rowCheckboxes = document.querySelectorAll('.row-checkbox');
+        rowCheckboxes.forEach(checkbox => {
+            checkbox.checked = checked;
+        });
+        updateMasterCheckbox();
+    }
+    
+    function updateSelectedCount() {
+        const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+        const selectedCountElement = document.getElementById('selectedCount');
+        if (selectedCountElement) {
+            selectedCountElement.textContent = `${checkedCount}件選択中`;
+            selectedCountElement.style.display = checkedCount > 0 ? 'inline' : 'none';
+        }
+    }
+    
+    function updateSaveButtonState() {
+        const checkedCount = document.querySelectorAll('.row-checkbox:checked').length;
+        if (saveBtn) {
+            saveBtn.disabled = checkedCount === 0;
+        }
+    }
+    
+    document.addEventListener('change', (e) => {
+        if (e.target.id === 'masterCheckbox') {
+            toggleAllCheckboxes(e.target.checked);
+        } else if (e.target.classList.contains('row-checkbox')) {
+            updateMasterCheckbox();
+        }
+    });
 
     loadPendingAndRender();
 });
