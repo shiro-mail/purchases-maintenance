@@ -434,6 +434,21 @@ nav a:hover {
     background-color: #c0392b;
 }
 
+/* Parts summary styles */
+.parts-summary {
+    text-align: right;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.parts-summary p {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     .container {
