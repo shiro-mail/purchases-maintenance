@@ -285,6 +285,10 @@ onDOMReady(() => {
                     <div class="modal-body">
                         <form id="editFormPending">
                             <div class="form-group">
+                                <label>ページ</label>
+                                <input type="text" name="page" value="${getVal(row, ['ページ','page','pageNumber'])}">
+                            </div>
+                            <div class="form-group">
                                 <label>出荷日</label>
                                 <input type="text" name="shipment_date" value="${getVal(row, ['出荷日','shipment_date','shipmentDate'])}">
                             </div>
@@ -336,6 +340,7 @@ onDOMReady(() => {
                 const form = modal.querySelector('#editFormPending');
                 const fd = new FormData(form);
                 const updated = {
+                    page: fd.get('page') || '',
                     shipment_date: fd.get('shipment_date') || '',
                     order_number: fd.get('order_number') || '',
                     delivery_number: fd.get('delivery_number') || '',
@@ -343,6 +348,7 @@ onDOMReady(() => {
                     shipping_cost: Number(fd.get('shipping_cost') || 0),
                     parts_total: Number(fd.get('parts_total') || 0),
                     total_amount: Number(fd.get('total_amount') || 0),
+                    ページ: fd.get('page') || '',
                     出荷日: fd.get('shipment_date') || '',
                     受注番号: fd.get('order_number') || '',
                     納入先番号: fd.get('delivery_number') || '',
