@@ -42,15 +42,6 @@ def init_db():
         )
     ''')
     
-    try:
-        cursor.execute('PRAGMA table_info(basic_info)')
-        columns = [column[1] for column in cursor.fetchall()]
-        if 'page' not in columns:
-            cursor.execute('ALTER TABLE basic_info ADD COLUMN page TEXT')
-            print('Database migration: Added page column to basic_info table')
-    except Exception as e:
-        print(f'Database migration warning: {e}')
-    
     conn.commit()
     conn.close()
 
