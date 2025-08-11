@@ -70,11 +70,6 @@ onDOMReady(() => {
         if (saveBtn) saveBtn.disabled = !enabled;
     }
 
-    function formatCurrency(val) {
-        const n = Number(val || 0);
-        return '￥' + n.toLocaleString('ja-JP');
-    }
-
     function formatDate(val) {
         if (!val) return '';
         return val;
