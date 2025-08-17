@@ -482,3 +482,226 @@ nav a:hover {
         flex-direction: column;
     }
 }
+
+/* Editor styles */
+.editor-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.editor-header {
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 1rem;
+}
+
+.editor-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.file-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.file-controls input[type="text"] {
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    min-width: 200px;
+}
+
+.editor-info {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+#file-status {
+    font-weight: 500;
+}
+
+#file-status.status-saved {
+    color: #28a745;
+}
+
+#file-status.status-modified {
+    color: #ffc107;
+}
+
+#file-status.status-new {
+    color: #17a2b8;
+}
+
+#file-status.status-loaded {
+    color: #6f42c1;
+}
+
+.editor-main {
+    display: flex;
+    height: calc(100vh - 200px);
+    min-height: 500px;
+}
+
+.editor-sidebar {
+    width: 250px;
+    background: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.editor-sidebar h3 {
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    color: #495057;
+}
+
+.file-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.file-item {
+    padding: 0.5rem;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.file-item:hover {
+    background: #e9ecef;
+    border-color: #adb5bd;
+}
+
+.file-name {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 0.25rem;
+}
+
+.file-info {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+.editor-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.editor-wrapper {
+    display: flex;
+    height: 100%;
+    position: relative;
+}
+
+.line-numbers {
+    width: 60px;
+    background: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+    padding: 1rem 0.5rem;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: #6c757d;
+    text-align: right;
+    white-space: pre;
+    overflow: hidden;
+    user-select: none;
+}
+
+#editor {
+    flex: 1;
+    border: none;
+    outline: none;
+    padding: 1rem;
+    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    resize: none;
+    background: white;
+    color: #212529;
+    tab-size: 4;
+    white-space: pre;
+    overflow-wrap: normal;
+    overflow-x: auto;
+}
+
+#editor:focus {
+    background: #fff;
+}
+
+/* スクロールバーのスタイリング */
+.editor-sidebar::-webkit-scrollbar,
+#editor::-webkit-scrollbar,
+.line-numbers::-webkit-scrollbar {
+    width: 8px;
+}
+
+.editor-sidebar::-webkit-scrollbar-track,
+#editor::-webkit-scrollbar-track,
+.line-numbers::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.editor-sidebar::-webkit-scrollbar-thumb,
+#editor::-webkit-scrollbar-thumb,
+.line-numbers::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.editor-sidebar::-webkit-scrollbar-thumb:hover,
+#editor::-webkit-scrollbar-thumb:hover,
+.line-numbers::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .editor-main {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .editor-sidebar {
+        width: 100%;
+        max-height: 200px;
+    }
+    
+    .editor-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .file-controls {
+        justify-content: center;
+    }
+    
+    .file-controls input[type="text"] {
+        min-width: auto;
+        flex: 1;
+    }
+    
+    .editor-info {
+        justify-content: center;
+    }
+    
+    .editor-wrapper {
+        height: 400px;
+    }
+}

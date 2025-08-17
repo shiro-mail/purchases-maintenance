@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}エディター{% endblock %}
+
+{% block content %}
+<div class="editor-container">
+    <div class="editor-header">
+        <div class="editor-controls">
+            <div class="file-controls">
+                <input type="text" id="filename" placeholder="ファイル名を入力..." value="untitled.txt">
+                <button id="save-btn" class="btn btn-primary">保存</button>
+                <button id="load-btn" class="btn btn-secondary">読み込み</button>
+                <button id="new-btn" class="btn btn-info">新規</button>
+            </div>
+            <div class="editor-info">
+                <span id="file-status">未保存</span>
+                <span id="cursor-position">行: 1, 列: 1</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="editor-main">
+        <div class="editor-sidebar">
+            <h3>ファイル一覧</h3>
+            <div id="file-list" class="file-list">
+                <!-- ファイル一覧がここに表示されます -->
+            </div>
+        </div>
+        
+        <div class="editor-content">
+            <div class="editor-wrapper">
+                <div class="line-numbers" id="line-numbers">1</div>
+                <textarea id="editor" placeholder="ここにテキストを入力してください..."></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const editor = document.getElementById('editor');
+    const lineNumbers = document.getElementById('line-numbers');
+    const filenameInput = document.getElementById('filename');
+    const saveBtn = document.getElementById('save-btn');
+    const loadBtn = document.getElementById('load-btn');
+    const newBtn = document.getElementById('new-btn');
+    const fileStatus = document.getElementById('file-status');
+    const cursorPosition = document.getElementById('cursor-position');
+    const fileList = document.getElementById('file-list');
+    
+    let isModified = false;
+    let currentFile = '';
+    
+    // エディターの初期化
+    function initEditor() {
+        updateLineNumbers();
+        updateCursorPosition();
+        loadFileList();
+    }
+    
+    // 行番号の更新
+    function updateLineNumbers() {
+        const lines = editor.value.split('\n');
+        const lineNumbersArray = [];
+        for (let i = 1; i <= lines.length; i++) {
+            lineNumbersArray.push(i);
+        }
+        lineNumbers.textContent = lineNumbersArray.join('\n');
+    }
+    
+    // カーソル位置の更新
+    function updateCursorPosition() {
+        const text = editor.value.substring(0, editor.selectionStart);
+        const lines = text.split('\n');
+        const line = lines.length;
+        const column = lines[lines.length - 1].length + 1;
+        cursorPosition.textContent = `行: ${line}, 列: ${column}`;
+    }
+    
+    // ファイル一覧の読み込み
+    function loadFileList() {
+        fetch('/api/list_files')
+            .then(response => response.json())
+            .then(data => {
+                if (data.files) {
+                    fileList.innerHTML = '';
+                    data.files.forEach(file => {
+                        const fileItem = document.createElement('div');
+                        fileItem.className = 'file-item';
+                        fileItem.innerHTML = `
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-info">${formatFileSize(file.size)} - ${file.modified}</div>
+                        `;
+                        fileItem.addEventListener('click', () => {
+                            filenameInput.value = file.name;
+                            loadFile(file.name);
+                        });
+                        fileList.appendChild(fileItem);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('ファイル一覧の読み込みエラー:', error);
+            });
+    }
+    
+    // ファイルサイズのフォーマット
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    // ファイルの保存
+    function saveFile() {
+        const filename = filenameInput.value.trim();
+        if (!filename) {
+            alert('ファイル名を入力してください');
+            return;
+        }
+        
+        fetch('/api/save_file', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                filename: filename,
+                content: editor.value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                fileStatus.textContent = '保存済み';
+                fileStatus.className = 'status-saved';
+                isModified = false;
+                currentFile = filename;
+                loadFileList();
+                alert(data.message);
+            } else {
+                alert('保存エラー: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('保存エラー:', error);
+            alert('保存に失敗しました');
+        });
+    }
+    
+    // ファイルの読み込み
+    function loadFile(filename) {
+        if (!filename) {
+            filename = filenameInput.value.trim();
+        }
+        
+        if (!filename) {
+            alert('ファイル名を入力してください');
+            return;
+        }
+        
+        fetch('/api/load_file', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                filename: filename
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                editor.value = data.content;
+                currentFile = filename;
+                isModified = false;
+                fileStatus.textContent = '読み込み済み';
+                fileStatus.className = 'status-loaded';
+                updateLineNumbers();
+                updateCursorPosition();
+            } else {
+                alert('読み込みエラー: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('読み込みエラー:', error);
+            alert('読み込みに失敗しました');
+        });
+    }
+    
+    // 新規ファイル
+    function newFile() {
+        if (isModified && !confirm('変更が保存されていません。新規作成しますか？')) {
+            return;
+        }
+        
+        editor.value = '';
+        filenameInput.value = 'untitled.txt';
+        currentFile = '';
+        isModified = false;
+        fileStatus.textContent = '新規ファイル';
+        fileStatus.className = 'status-new';
+        updateLineNumbers();
+        updateCursorPosition();
+    }
+    
+    // イベントリスナー
+    editor.addEventListener('input', function() {
+        updateLineNumbers();
+        if (!isModified) {
+            isModified = true;
+            fileStatus.textContent = '変更あり';
+            fileStatus.className = 'status-modified';
+        }
+    });
+    
+    editor.addEventListener('keyup', updateCursorPosition);
+    editor.addEventListener('click', updateCursorPosition);
+    
+    saveBtn.addEventListener('click', saveFile);
+    loadBtn.addEventListener('click', () => loadFile());
+    newBtn.addEventListener('click', newFile);
+    
+    // キーボードショートカット
+    editor.addEventListener('keydown', function(e) {
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            saveFile();
+        }
+    });
+    
+    // スクロール同期
+    editor.addEventListener('scroll', function() {
+        lineNumbers.scrollTop = editor.scrollTop;
+    });
+    
+    // 初期化
+    initEditor();
+});
+</script>
+{% endblock %}

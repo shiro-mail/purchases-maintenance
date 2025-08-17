@@ -721,6 +721,70 @@ def delete_all_data():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/editor')
+def editor():
+    return render_template('editor.html')
+
+@app.route('/api/save_file', methods=['POST'])
+def save_file():
+    try:
+        data = request.json
+        filename = data.get('filename', 'untitled.txt')
+        content = data.get('content', '')
+        
+        # Save to a files directory within the workspace
+        files_dir = os.path.join(os.getcwd(), 'files')
+        if not os.path.exists(files_dir):
+            os.makedirs(files_dir)
+        
+        file_path = os.path.join(files_dir, filename)
+        with open(file_path, 'w', encoding='utf-8') as f:
+            f.write(content)
+        
+        return jsonify({'success': True, 'message': f'ファイル "{filename}" を保存しました'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/load_file', methods=['POST'])
+def load_file():
+    try:
+        data = request.json
+        filename = data.get('filename')
+        
+        files_dir = os.path.join(os.getcwd(), 'files')
+        file_path = os.path.join(files_dir, filename)
+        
+        if os.path.exists(file_path):
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            return jsonify({'success': True, 'content': content})
+        else:
+            return jsonify({'error': 'ファイルが見つかりません'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/list_files', methods=['GET'])
+def list_files():
+    try:
+        files_dir = os.path.join(os.getcwd(), 'files')
+        if not os.path.exists(files_dir):
+            return jsonify({'files': []})
+        
+        files = []
+        for filename in os.listdir(files_dir):
+            file_path = os.path.join(files_dir, filename)
+            if os.path.isfile(file_path):
+                stat = os.stat(file_path)
+                files.append({
+                    'name': filename,
+                    'size': stat.st_size,
+                    'modified': datetime.fromtimestamp(stat.st_mtime).strftime('%Y-%m-%d %H:%M:%S')
+                })
+        
+        return jsonify({'files': files})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     init_db()
