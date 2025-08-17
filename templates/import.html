@@ -9,26 +9,9 @@
     <div class="upload-area">
         <div class="data-source-options">
             <div class="option-group">
-                <input type="radio" id="fileSource" name="dataSource" value="file" checked>
-                <label for="fileSource" class="source-label">JSONファイルから取得</label>
-                <div class="file-upload-section" id="fileUploadSection">
-                    <form id="uploadForm" enctype="multipart/form-data">
-                        <div class="file-input-wrapper">
-                            <input type="file" id="fileInput" name="file" accept=".json" required>
-                            <label for="fileInput" class="file-input-label">
-                                <span class="file-icon">📁</span>
-                                <span class="file-text">JSONファイルを選択してください</span>
-                            </label>
-                        </div>
-                        <button type="submit" class="btn btn-primary">ファイル読込</button>
-                    </form>
-                </div>
-            </div>
-            
-            <div class="option-group">
-                <input type="radio" id="difySource" name="dataSource" value="dify">
+                <input type="radio" id="difySource" name="dataSource" value="dify" checked>
                 <label for="difySource" class="source-label">PNG画像から取得</label>
-                <div class="dify-fetch-section" id="difyFetchSection" style="display: none;">
+                <div class="dify-fetch-section" id="difyFetchSection">
                     <form id="difyUploadForm" enctype="multipart/form-data">
                         <div class="file-input-wrapper">
                             <input type="file" id="difyFileInput" name="file" accept=".png,.jpg,.jpeg" multiple required>
@@ -38,6 +21,23 @@
                             </label>
                         </div>
                         <button type="submit" class="btn btn-primary">Difyでデータ分析</button>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="option-group">
+                <input type="radio" id="fileSource" name="dataSource" value="file">
+                <label for="fileSource" class="source-label">JSONファイルから取得（開発用）</label>
+                <div class="file-upload-section" id="fileUploadSection" style="display: none;">
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="file-input-wrapper">
+                            <input type="file" id="fileInput" name="file" accept=".json" required>
+                            <label for="fileInput" class="file-input-label">
+                                <span class="file-icon">📁</span>
+                                <span class="file-text">JSONファイルを選択してください</span>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">ファイル読込</button>
                     </form>
                 </div>
             </div>
