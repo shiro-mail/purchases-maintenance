@@ -10,6 +10,14 @@ onDOMReady(() => {
     
     let currentData = null;
     
+    // ファイル名表示関連の要素
+    const selectedFilesSection = document.getElementById('selectedFilesSection');
+    const selectedFilesList = document.getElementById('selectedFilesList');
+    
+    console.log('DOM elements found:');
+    console.log('selectedFilesSection:', selectedFilesSection);
+    console.log('selectedFilesList:', selectedFilesList);
+    
     fileSourceRadio.addEventListener('change', toggleDataSource);
     difySourceRadio.addEventListener('change', toggleDataSource);
     
@@ -24,14 +32,27 @@ onDOMReady(() => {
     }
     
     difyFileInput.addEventListener('change', (e) => {
+        console.log('File input change event triggered');
         const files = e.target.files;
+        console.log('Selected files:', files);
+        
         if (files.length > 0) {
             const fileText = document.querySelector('.dify-file-text');
-            if (files.length === 1) {
-                fileText.textContent = files[0].name;
-            } else {
-                fileText.textContent = `${files.length}個のファイルが選択されました`;
+            if (fileText) {
+                if (files.length === 1) {
+                    fileText.textContent = files[0].name;
+                } else {
+                    fileText.textContent = `${files.length}個のファイルが選択されました`;
+                }
             }
+            
+            console.log('Calling displaySelectedFiles with', files.length, 'files');
+            // 選択されたファイル名を表示エリアに表示
+            displaySelectedFiles(files);
+        } else {
+            console.log('No files selected, hiding section');
+            // ファイルが選択されていない場合は表示エリアを非表示
+            hideSelectedFiles();
         }
     });
     
@@ -129,6 +150,49 @@ onDOMReady(() => {
         }
     });
     
+    // 選択されたファイル名を表示する関数
+    function displaySelectedFiles(files) {
+        console.log('displaySelectedFiles called with', files.length, 'files');
+        console.log('selectedFilesSection:', selectedFilesSection);
+        console.log('selectedFilesList:', selectedFilesList);
+        
+        if (!selectedFilesSection || !selectedFilesList) {
+            console.error('Required elements not found');
+            return;
+        }
+        
+        selectedFilesList.innerHTML = '';
+        
+        Array.from(files).forEach((file, index) => {
+            console.log('Processing file:', file.name, file.size);
+            const fileItem = document.createElement('div');
+            fileItem.className = 'flex items-center justify-between p-3 bg-white rounded-lg border border-green-200 shadow-sm';
+            fileItem.innerHTML = `
+                <div class="flex items-center">
+                    <span class="text-green-600 mr-3">📄</span>
+                    <span class="font-medium text-gray-900">${file.name}</span>
+                </div>
+                <div class="text-sm text-gray-500">
+                    ${(file.size / 1024).toFixed(1)} KB
+                </div>
+            `;
+            selectedFilesList.appendChild(fileItem);
+        });
+        
+        console.log('Setting selectedFilesSection display to block');
+        selectedFilesSection.style.display = 'block';
+    }
     
+    // 選択されたファイル表示エリアを非表示にする関数
+    function hideSelectedFiles() {
+        console.log('hideSelectedFiles called');
+        if (selectedFilesSection && selectedFilesList) {
+            selectedFilesSection.style.display = 'none';
+            selectedFilesList.innerHTML = '';
+            console.log('Section hidden successfully');
+        } else {
+            console.error('Elements not found in hideSelectedFiles');
+        }
+    }
     
 });
